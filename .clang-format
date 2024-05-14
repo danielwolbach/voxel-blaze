@@ -1,0 +1,12 @@
+---
+BasedOnStyle: Microsoft
+IndentWidth: 4
+---
+Language: Cpp
+PointerAlignment: Right
+ColumnLimit: 120
+FixNamespaceComments: false
+NamespaceIndentation: All
+AllowShortLoopsOnASingleLine: true
+AlignEscapedNewlines: Left
+---
