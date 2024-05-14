@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <vector>
 
@@ -23,4 +24,7 @@ namespace voxel_blaze
 
     template <typename T>
     using Vec = std::vector<T>;
+
+    template <typename T>
+    using Shared = std::shared_ptr<T>;
 }

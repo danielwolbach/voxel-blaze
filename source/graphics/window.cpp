@@ -1,6 +1,7 @@
 #define VOXEL_BLAZE_USE_EXTERNAL
 
 #include <voxel_blaze/core/external.hpp>
+#include <voxel_blaze/core/types.hpp>
 #include <voxel_blaze/graphics/window.hpp>
 
 namespace voxel_blaze
@@ -26,6 +27,15 @@ namespace voxel_blaze
         }
 
         glfwMakeContextCurrent(static_cast<GLFWwindow *>(handle));
+        glfwSwapInterval(1);
+
+        if (u32 error = glewInit())
+        {
+            const char *error_string = reinterpret_cast<const char *>(glewGetErrorString(error));
+            throw RuntimeError(fmt::format("Failed to initialize GLEW: {}", error_string));
+        }
+
+        glViewport(0, 0, width, height);
     }
 
     Window::~Window()
