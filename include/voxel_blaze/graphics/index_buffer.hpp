@@ -9,6 +9,8 @@ namespace voxel_blaze
       public:
         explicit IndexBuffer(const Vec<u32> &indices);
 
+        IndexBuffer(IndexBuffer &&other);
+
         ~IndexBuffer();
 
         void bind() const;
@@ -18,7 +20,6 @@ namespace voxel_blaze
         IndexBuffer(const IndexBuffer &other) = delete;
         IndexBuffer &operator=(const IndexBuffer &other) = delete;
 
-      private:
         u32 handle = 0;
         u32 vertex_count;
     };

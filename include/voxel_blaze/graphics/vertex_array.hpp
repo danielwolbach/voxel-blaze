@@ -9,18 +9,19 @@ namespace voxel_blaze
     class VertexArray
     {
       public:
-        VertexArray(const Shared<IndexBuffer> &index_buffer);
+        VertexArray(IndexBuffer &&index_buffer);
 
         ~VertexArray();
 
         void bind() const;
 
-        void add_vertex_buffer(const Shared<VertexBuffer> &vertex_buffer) const;
+        void add_vertex_buffer(VertexBuffer &&vertex_buffer);
 
         u32 element_count() const;
 
       private:
         u32 handle = 0;
-        const Shared<IndexBuffer> index_buffer;
+        IndexBuffer index_buffer;
+        Vec<VertexBuffer> vertex_buffers;
     };
 }

@@ -1,3 +1,4 @@
+#include <fmt/core.h>
 #define VOXEL_BLAZE_USE_EXTERNAL
 
 #include <voxel_blaze/core/external.hpp>
@@ -14,8 +15,15 @@ namespace voxel_blaze
         GL_CHECK(glBindBuffer(GL_ARRAY_BUFFER, 0));
     }
 
+    VertexBuffer::VertexBuffer(VertexBuffer &&other) : handle(other.handle)
+    {
+        fmt::println("Move vertex buffer {} from object {} to {}", handle, fmt::ptr(&other), fmt::ptr(this));
+        other.handle = 0;
+    }
+
     VertexBuffer::~VertexBuffer()
     {
+        fmt::println("Delete vertex buffer {} of object {}", handle, fmt::ptr(this));
         GL_CHECK(glDeleteBuffers(1, &handle));
     }
 

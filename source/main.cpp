@@ -1,5 +1,6 @@
 #define VOXEL_BLAZE_USE_EXTERNAL
 
+#include <iostream>
 #include <voxel_blaze/core/external.hpp>
 #include <voxel_blaze/graphics/index_buffer.hpp>
 #include <voxel_blaze/graphics/shader.hpp>
@@ -28,21 +29,20 @@ int main()
 {
     Window window(1280, 720);
 
-    Vec<u32> indices = {0, 2, 1};
+    Vec<u32> indices = {0, 1, 2};
     Vec<f32> vertices = {-0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f};
 
-    Shared<IndexBuffer> index_buffer = std::make_shared<IndexBuffer>(indices);
-    Shared<VertexBuffer> vertex_buffer = std::make_shared<VertexBuffer>(vertices);
+    IndexBuffer index_buffer(indices);
+    VertexBuffer vertex_buffer(vertices);
 
-    VertexArray vertex_array(index_buffer);
-    vertex_array.add_vertex_buffer(vertex_buffer);
+    VertexArray vertex_array(std::move(index_buffer));
+    vertex_array.add_vertex_buffer(std::move(vertex_buffer));
 
     Shader shader(vertexShaderSource, fragmentShaderSource);
 
     while (!window.should_close())
     {
         window.update();
-
         shader.use();
         vertex_array.bind();
 

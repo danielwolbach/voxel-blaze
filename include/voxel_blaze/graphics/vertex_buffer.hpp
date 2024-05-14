@@ -9,6 +9,8 @@ namespace voxel_blaze
       public:
         explicit VertexBuffer(const Vec<f32> &data);
 
+        VertexBuffer(VertexBuffer &&other);
+
         ~VertexBuffer();
 
         void bind() const;

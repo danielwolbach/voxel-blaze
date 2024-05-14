@@ -6,12 +6,12 @@
 
 namespace voxel_blaze
 {
-    VertexArray::VertexArray(const Shared<IndexBuffer> &index_buffer) : index_buffer(index_buffer)
+    VertexArray::VertexArray(IndexBuffer &&index_buffer) : index_buffer(std::move(index_buffer))
     {
         GL_CHECK(glGenVertexArrays(1, &handle));
         GL_CHECK(glBindVertexArray(handle));
 
-        index_buffer->bind();
+        this->index_buffer.bind();
 
         GL_CHECK(glBindVertexArray(0));
     }
@@ -26,19 +26,21 @@ namespace voxel_blaze
         GL_CHECK(glBindVertexArray(handle));
     }
 
-    void VertexArray::add_vertex_buffer(const Shared<VertexBuffer> &vertex_buffer) const
+    void VertexArray::add_vertex_buffer(VertexBuffer &&vertex_buffer)
     {
         bind();
-        vertex_buffer->bind();
+        vertex_buffer.bind();
 
         // TODO Don't hard-code the vertex buffer layout.
         GL_CHECK(glEnableVertexAttribArray(0));
         GL_CHECK(glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, nullptr));
         GL_CHECK(glDisableVertexAttribArray(0));
+
+        vertex_buffers.push_back(std::move(vertex_buffer));
     }
 
     u32 VertexArray::element_count() const
     {
-        return index_buffer->size();
+        return index_buffer.size();
     }
 }

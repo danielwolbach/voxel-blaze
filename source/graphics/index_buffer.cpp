@@ -1,5 +1,6 @@
 #define VOXEL_BLAZE_USE_EXTERNAL
 
+#include <iostream>
 #include <voxel_blaze/core/external.hpp>
 #include <voxel_blaze/graphics/index_buffer.hpp>
 #include <voxel_blaze/graphics/utils.hpp>
@@ -14,8 +15,16 @@ namespace voxel_blaze
         GL_CHECK(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
 
+    IndexBuffer::IndexBuffer(IndexBuffer &&other) : handle(other.handle), vertex_count(other.vertex_count)
+    {
+        fmt::println("Move index buffer {} from object {} to {}", handle, fmt::ptr(&other), fmt::ptr(this));
+        other.handle = 0;
+        other.vertex_count = 0;
+    }
+
     IndexBuffer::~IndexBuffer()
     {
+        fmt::println("Delete index buffer {} of object {}", handle, fmt::ptr(this));
         GL_CHECK(glDeleteBuffers(1, &handle));
     }
 
