@@ -9,4 +9,6 @@ FixNamespaceComments: false
 NamespaceIndentation: All
 AllowShortLoopsOnASingleLine: true
 AlignEscapedNewlines: Left
+ReflowComments: true
+AlwaysBreakTemplateDeclarations: Yes
 ---
