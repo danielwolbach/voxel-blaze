@@ -1,9 +1,0 @@
-{
-  "dependencies": [
-    "glew",
-    {
-      "name": "glfw3"
-    },
-    "fmt"
-  ]
-}
