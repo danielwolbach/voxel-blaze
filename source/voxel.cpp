@@ -26,6 +26,14 @@ Chunk::Chunk(unsigned size) : size_x(size), size_y(size), size_z(size)
     }
 }
 
+Chunk::Chunk(unsigned size_x, unsigned size_y, unsigned size_z) : size_x(size_x), size_y(size_y), size_z(size_z)
+{
+    for (unsigned i = 0; i < size_x * size_y * size_z; i++)
+    {
+        data.push_back(std::nullopt);
+    }
+}
+
 unsigned Chunk::index(unsigned x, unsigned y, unsigned z) const
 {
     return x + size_x * (y + size_y * z);
@@ -119,6 +127,51 @@ Chunk Chunk::spherical(unsigned diameter)
                 if (distance <= radius)
                 {
                     chunk.set(x, y, z, glm::vec3(0.0F, 0.0F, 0.0F));
+                }
+            }
+        }
+    }
+
+    return chunk;
+}
+
+Chunk Chunk::filled(unsigned size_x, unsigned size_y, unsigned size_z)
+{
+    Chunk chunk(size_x, size_y, size_z);
+
+    for (unsigned x = 0; x < size_x; x++)
+    {
+        for (unsigned y = 0; y < size_y; y++)
+        {
+            for (unsigned z = 0; z < size_z; z++)
+            {
+                chunk.set(x, y, z, glm::vec3(1.0F, 1.0F, 1.0F));
+            }
+        }
+    }
+
+    return chunk;
+}
+
+Chunk Chunk::noise(unsigned size_x, unsigned size_y, unsigned size_z)
+{
+    Chunk chunk(size_x, size_y, size_z);
+
+    float scale = 0.1f;     // Scale for the Perlin noise
+    float threshold = 0.5f; // Threshold to decide if a voxel should be set
+
+    for (unsigned x = 0; x < size_x; x++)
+    {
+        for (unsigned y = 0; y < size_y; y++)
+        {
+            for (unsigned z = 0; z < size_z; z++)
+            {
+                float noise_value = glm::perlin(glm::vec3(x, y, z) * scale);
+                noise_value = (noise_value + 1.0f) / 2.0f;
+
+                if (noise_value > threshold)
+                {
+                    chunk.set(x, y, z, glm::vec3(1.0F, 1.0F, 1.0F));
                 }
             }
         }

@@ -24,7 +24,7 @@ Window::Window(const unsigned width, const unsigned height)
     }
 
     glfwMakeContextCurrent(static_cast<GLFWwindow *>(handle));
-    glfwSwapInterval(1);
+    glfwSwapInterval(0);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {

@@ -10,6 +10,8 @@ class Chunk
   public:
     Chunk(unsigned size);
 
+    Chunk(unsigned size_x, unsigned size_y, unsigned size_z);
+
     unsigned index(unsigned x, unsigned y, unsigned z) const;
 
     Voxel get(unsigned x, unsigned y, unsigned z) const;
@@ -21,6 +23,10 @@ class Chunk
     glm::vec3 center() const;
 
     static Chunk spherical(unsigned diameter);
+
+    static Chunk filled(unsigned size_x, unsigned size_y, unsigned size_z);
+
+    static Chunk noise(unsigned size_x, unsigned size_y, unsigned size_z);
 
   private:
     unsigned size_x;

@@ -32,133 +32,110 @@ void main()
 }
 )"""";
 
-const std::vector<float> cube_vertices = {
-    // Front face
-    -0.5f, -0.5f, 0.5f, // Position
-    1.0f, 0.0f, 0.0f,   // Color
-    0.5f, -0.5f, 0.5f,  // Position
-    1.0f, 0.0f, 0.0f,   // Color
-    0.5f, 0.5f, 0.5f,   // Position
-    1.0f, 0.0f, 0.0f,   // Color
-    -0.5f, 0.5f, 0.5f,  // Position
-    1.0f, 0.0f, 0.0f,   // Color
-
-    // Back face
-    -0.5f, -0.5f, -0.5f, // Position
-    0.0f, 1.0f, 0.0f,    // Color
-    0.5f, -0.5f, -0.5f,  // Position
-    0.0f, 1.0f, 0.0f,    // Color
-    0.5f, 0.5f, -0.5f,   // Position
-    0.0f, 1.0f, 0.0f,    // Color
-    -0.5f, 0.5f, -0.5f,  // Position
-    0.0f, 1.0f, 0.0f,    // Color
-
-    // Right face
-    0.5f, -0.5f, 0.5f,  // Position
-    0.0f, 0.0f, 1.0f,   // Color
-    0.5f, -0.5f, -0.5f, // Position
-    0.0f, 0.0f, 1.0f,   // Color
-    0.5f, 0.5f, -0.5f,  // Position
-    0.0f, 0.0f, 1.0f,   // Color
-    0.5f, 0.5f, 0.5f,   // Position
-    0.0f, 0.0f, 1.0f,   // Color
-
-    // Left face
-    -0.5f, -0.5f, 0.5f,  // Position
-    1.0f, 1.0f, 0.0f,    // Color
-    -0.5f, -0.5f, -0.5f, // Position
-    1.0f, 1.0f, 0.0f,    // Color
-    -0.5f, 0.5f, -0.5f,  // Position
-    1.0f, 1.0f, 0.0f,    // Color
-    -0.5f, 0.5f, 0.5f,   // Position
-    1.0f, 1.0f, 0.0f,    // Color
-
-    // Top face
-    -0.5f, 0.5f, 0.5f,  // Position
-    0.0f, 1.0f, 1.0f,   // Color
-    0.5f, 0.5f, 0.5f,   // Position
-    0.0f, 1.0f, 1.0f,   // Color
-    0.5f, 0.5f, -0.5f,  // Position
-    0.0f, 1.0f, 1.0f,   // Color
-    -0.5f, 0.5f, -0.5f, // Position
-    0.0f, 1.0f, 1.0f,   // Color
-
-    // Bottom face
-    -0.5f, -0.5f, 0.5f,  // Position
-    1.0f, 0.0f, 1.0f,    // Color
-    0.5f, -0.5f, 0.5f,   // Position
-    1.0f, 0.0f, 1.0f,    // Color
-    0.5f, -0.5f, -0.5f,  // Position
-    1.0f, 0.0f, 1.0f,    // Color
-    -0.5f, -0.5f, -0.5f, // Position
-    1.0f, 0.0f, 1.0f     // Color
-};
-
-const std::vector<unsigned> cube_indices = {
-    0,  1,  2,  2,  3,  0,  // Front face
-    4,  5,  6,  6,  7,  4,  // Back face
-    8,  9,  10, 10, 11, 8,  // Right face
-    12, 13, 14, 14, 15, 12, // Left face
-    16, 17, 18, 18, 19, 16, // Top face
-    20, 21, 22, 22, 23, 20  // Bottom face
-};
-
 int main()
 {
+    auto epsilon = glm::epsilon<float>();
+    auto size = 4;
     Window window(1280, 720);
     Shader shader(vertex_shader_source, fragment_shader_source);
-    // Model model(cube_indices, cube_vertices);
-    Chunk chunk(10);
-    chunk = Chunk::spherical(32);
+    Chunk chunk = Chunk::filled(size, size, size);
     Model model = chunk.meshify_naive();
 
-    glm::mat4 model_transform = glm::mat4(1.0f);
+    glm::mat4 model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(-size / 2, -size / 2, -size / 2));
+    // glm::mat4 model_transform = glm::mat4(1.0f);
     shader.upload_transform("model_transform", glm::value_ptr(model_transform));
 
     glm::mat4 projection_transform = glm::perspective(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 10000.0f);
     shader.upload_transform("projection_transform", glm::value_ptr(projection_transform));
 
-    float distance = 5.0f;
-    glm::vec3 camera_position(0.0f, 0.0f, distance);
-    glm::vec3 target_position = chunk.center();
+    bool wire_frame = false;
+
+    float distance = (float)size * 2.5f;
+    float theta = glm::radians(45.0);
+    float phi = glm::radians(70.0);
+
+    glm::vec3 target_position(0.0f, 0.0f, 0.0f);
+
+    // CLOCK
+    auto last_fps_time = std::chrono::high_resolution_clock::now();
+    auto last_time = std::chrono::high_resolution_clock::now();
+    int frame_count = 0;
+    double fps = 0.0;
 
     while (window.opened())
     {
-        shader.draw(model);
-
-        glm::mat4 view_transform = glm::lookAt(camera_position, target_position, glm::vec3(0.0f, 1.0f, 0.0f));
-        shader.upload_transform("view_transform", glm::value_ptr(view_transform));
+        auto start_time = std::chrono::high_resolution_clock::now();
+        auto delta_time = std::chrono::duration_cast<std::chrono::duration<float>>(start_time - last_time).count();
 
         {
-            float speed = glm::distance(camera_position, target_position) * 0.005f;
-            glm::vec3 front = glm::normalize(target_position - camera_position);
-            glm::vec3 right = glm::normalize(glm::cross(front, glm::vec3(0.0f, 1.0f, 0.0f)));
-            glm::vec3 up = glm::normalize(glm::cross(right, front));
+            phi = glm::clamp(phi, epsilon, glm::pi<float>() - epsilon);
+            const auto x = distance * glm::sin(phi) * glm::cos(theta);
+            const auto y = distance * glm::cos(phi);
+            const auto z = distance * glm::sin(phi) * glm::sin(theta);
+            const auto view_transform = glm::lookAt(glm::vec3(x, y, z), target_position, glm::vec3(0.0f, 1.0f, 0.0f));
+            shader.upload_transform("view_transform", glm::value_ptr(view_transform));
 
             if (window.key_down(GLFW_KEY_UP))
             {
-                camera_position += speed * up;
+                phi -= delta_time;
             }
             if (window.key_down(GLFW_KEY_DOWN))
             {
-                camera_position -= speed * up;
+                phi += delta_time;
             }
             if (window.key_down(GLFW_KEY_LEFT))
             {
-                camera_position -= speed * right;
+                theta += delta_time;
             }
             if (window.key_down(GLFW_KEY_RIGHT))
             {
-                camera_position += speed * right;
+                theta -= delta_time;
             }
             if (window.key_down(GLFW_KEY_PAGE_UP))
             {
-                camera_position += speed * front;
+                distance -= delta_time * 100.0f;
             }
             if (window.key_down(GLFW_KEY_PAGE_DOWN))
             {
-                camera_position -= speed * front;
+                distance += delta_time * 100.0f;
             }
+
+            if (window.key_down(GLFW_KEY_SPACE))
+            {
+                wire_frame = !wire_frame;
+                if (wire_frame)
+                {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                }
+                else
+                {
+                    glLineWidth(2.0f);
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                }
+            }
+        }
+
+        shader.draw(model);
+
+        // Render loop end
+        auto end_time = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> frame_duration = end_time - start_time;
+        double frame_time = frame_duration.count();
+
+        frame_count++;
+        last_time = end_time;
+
+        // Calculate FPS every second
+        auto now = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = now - last_fps_time;
+        if (elapsed.count() >= 1.0)
+        {
+            fps = frame_count / elapsed.count();
+            last_fps_time = now;
+            frame_count = 0;
+
+            // Use spdlog for logging
+            spdlog::info("FPS: {:.2f}, Frame Time: {:.6f} ms", fps, frame_time * 1000.0);
         }
     }
 }
