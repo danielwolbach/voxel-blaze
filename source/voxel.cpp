@@ -24,6 +24,8 @@ Chunk::Chunk(unsigned size) : size_x(size), size_y(size), size_z(size)
     {
         data.push_back(std::nullopt);
     }
+
+    spdlog::info("Created chunk {}x{}x{} can hold {} voxels", size_x, size_y, size_z, size_x * size_y * size_z);
 }
 
 Chunk::Chunk(unsigned size_x, unsigned size_y, unsigned size_z) : size_x(size_x), size_y(size_y), size_z(size_z)
@@ -54,7 +56,9 @@ Model Chunk::meshify_naive() const
     std::vector<Vertex> vertices;
     std::vector<unsigned> indices;
     std::unordered_map<Vertex, unsigned> map;
+    unsigned voxel_count = 0;
 
+    spdlog::info("Generating mesh...");
     for (unsigned x = 0; x < size_x; x++)
     {
         for (unsigned y = 0; y < size_y; y++)
@@ -64,18 +68,20 @@ Model Chunk::meshify_naive() const
                 Voxel voxel = get(x, y, z);
                 if (voxel.has_value())
                 {
+                    voxel_count += 1;
+                    spdlog::trace("Processing voxel at {} {} {}", x, y, z);
                     // Color color = *voxel;
                     float fx = (float)x;
                     float fy = (float)y;
                     float fz = (float)z;
-                    std::vector<Vertex> cube_vertices = {{fx, fy, fz, 0.5, 0.5, 0.5},
-                                                         {fx + 1.0F, fy, fz, 1.0, 0.5, 0.5},
-                                                         {fx + 1.0F, fy + 1.0F, fz, 1.0, 1.0, 0.5},
-                                                         {fx, fy + 1.0F, fz, 0.5, 1.0, 0.5},
-                                                         {fx, fy, fz + 1.0F, 0.5, 0.5, 1.0},
-                                                         {fx + 1.0F, fy, fz + 1.0F, 1.0, 0.5, 1.0},
+                    std::vector<Vertex> cube_vertices = {{fx, fy, fz, 1.0, 1.0, 1.0},
+                                                         {fx + 1.0F, fy, fz, 1.0, 1.0, 1.0},
+                                                         {fx + 1.0F, fy + 1.0F, fz, 1.0, 1.0, 1.0},
+                                                         {fx, fy + 1.0F, fz, 1.0, 1.0, 1.0},
+                                                         {fx, fy, fz + 1.0F, 1.0, 1.0, 1.0},
+                                                         {fx + 1.0F, fy, fz + 1.0F, 1.0, 1.0, 1.0},
                                                          {fx + 1.0F, fy + 1.0F, fz + 1.0F, 1.0, 1.0, 1.0},
-                                                         {fx, fy + 1.0F, fz + 1.0F, 0.5, 1.0, 1.0}};
+                                                         {fx, fy + 1.0F, fz + 1.0F, 1.0, 1.0, 1.0}};
 
                     std::vector<unsigned> cube_indice = {4, 5, 6, 6, 7, 4, 0, 1, 2, 2, 3, 0, 2, 6, 5, 5, 1, 2,
                                                          0, 4, 7, 7, 3, 0, 2, 3, 7, 7, 6, 2, 1, 5, 4, 4, 0, 1};
@@ -89,12 +95,14 @@ Model Chunk::meshify_naive() const
                         if (it != map.end())
                         {
                             indices.push_back(it->second);
+                            spdlog::trace("Found vertex {} {} {}", vertex.x, vertex.y, vertex.z);
                         }
                         else
-                        {
+                         {
                             map[vertex] = vertices.size();
                             indices.push_back(vertices.size());
                             vertices.push_back(vertex);
+                            spdlog::trace("Add vertex {} {} {}", vertex.x, vertex.y, vertex.z);
                         }
                     }
                 }
@@ -102,6 +110,9 @@ Model Chunk::meshify_naive() const
         }
     }
 
+    spdlog::info("Generated {} voxels", voxel_count);
+    spdlog::info("Generated {} vertices", vertices.size());
+    spdlog::info("Generated {} indices ({} faces)", indices.size(), indices.size() / 3);
     return Model(indices, vertices);
 }
 
@@ -135,36 +146,39 @@ Chunk Chunk::spherical(unsigned diameter)
     return chunk;
 }
 
-Chunk Chunk::filled(unsigned size_x, unsigned size_y, unsigned size_z)
+Chunk Chunk::filled(unsigned size)
 {
-    Chunk chunk(size_x, size_y, size_z);
+    Chunk chunk(size, size, size);
+    unsigned voxel_counter = 0;
 
-    for (unsigned x = 0; x < size_x; x++)
+    for (unsigned x = 0; x < size; x++)
     {
-        for (unsigned y = 0; y < size_y; y++)
+        for (unsigned y = 0; y < size; y++)
         {
-            for (unsigned z = 0; z < size_z; z++)
+            for (unsigned z = 0; z < size; z++)
             {
                 chunk.set(x, y, z, glm::vec3(1.0F, 1.0F, 1.0F));
+                voxel_counter += 1;
             }
         }
     }
 
+    spdlog::info("Filled a total of {} voxels", voxel_counter);
     return chunk;
 }
 
-Chunk Chunk::noise(unsigned size_x, unsigned size_y, unsigned size_z)
+Chunk Chunk::noise(unsigned size)
 {
-    Chunk chunk(size_x, size_y, size_z);
+    Chunk chunk(size, size, size);
 
     float scale = 0.1f;     // Scale for the Perlin noise
     float threshold = 0.5f; // Threshold to decide if a voxel should be set
 
-    for (unsigned x = 0; x < size_x; x++)
+    for (unsigned x = 0; x < size; x++)
     {
-        for (unsigned y = 0; y < size_y; y++)
+        for (unsigned y = 0; y < size; y++)
         {
-            for (unsigned z = 0; z < size_z; z++)
+            for (unsigned z = 0; z < size; z++)
             {
                 float noise_value = glm::perlin(glm::vec3(x, y, z) * scale);
                 noise_value = (noise_value + 1.0f) / 2.0f;

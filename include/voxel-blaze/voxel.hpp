@@ -24,9 +24,9 @@ class Chunk
 
     static Chunk spherical(unsigned diameter);
 
-    static Chunk filled(unsigned size_x, unsigned size_y, unsigned size_z);
+    static Chunk filled(unsigned size);
 
-    static Chunk noise(unsigned size_x, unsigned size_y, unsigned size_z);
+    static Chunk noise(unsigned size);
 
   private:
     unsigned size_x;

@@ -1,3 +1,5 @@
+#include "spdlog/common.h"
+#include "spdlog/spdlog.h"
 #include <voxel-blaze/model.hpp>
 #include <voxel-blaze/shader.hpp>
 #include <voxel-blaze/voxel.hpp>
@@ -32,20 +34,33 @@ void main()
 }
 )"""";
 
+int test()
+{
+    for (unsigned i = 1; i <= 64; i *= 2)
+    {
+        Chunk chunk = Chunk::filled(i);
+        Model model = chunk.meshify_naive();
+    }
+
+    exit(1);
+}
+
 int main()
 {
+    spdlog::set_level(spdlog::level::info);
+    Window window(720, 720);
+    test();
     auto epsilon = glm::epsilon<float>();
-    auto size = 4;
-    Window window(1280, 720);
+    auto size = 8;
     Shader shader(vertex_shader_source, fragment_shader_source);
-    Chunk chunk = Chunk::filled(size, size, size);
+    Chunk chunk = Chunk::spherical(size);
     Model model = chunk.meshify_naive();
 
     glm::mat4 model_transform = glm::translate(glm::mat4(1.0f), glm::vec3(-size / 2, -size / 2, -size / 2));
     // glm::mat4 model_transform = glm::mat4(1.0f);
     shader.upload_transform("model_transform", glm::value_ptr(model_transform));
 
-    glm::mat4 projection_transform = glm::perspective(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 10000.0f);
+    glm::mat4 projection_transform = glm::perspective(glm::radians(45.0f), 720.0f / 720.0f, 0.1f, 10000.0f);
     shader.upload_transform("projection_transform", glm::value_ptr(projection_transform));
 
     bool wire_frame = false;

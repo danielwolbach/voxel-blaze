@@ -3,6 +3,7 @@ project('voxel-blaze', 'c', 'cpp')
 dependencies = [
   dependency('glfw3'),
   dependency('spdlog'),
+  dependency('glm'),
 ]
 
 source_files = [

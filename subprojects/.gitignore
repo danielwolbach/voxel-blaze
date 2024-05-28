@@ -1,3 +1,5 @@
 packagecache
 glfw-*
+spdlog-*
+glm-*
 !*.wrap
