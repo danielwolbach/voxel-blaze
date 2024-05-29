@@ -1,5 +1,5 @@
-#include <voxel-blaze/model.hpp>
-#include <voxel-blaze/shader.hpp>
+#include <voxel-blaze/graphics/model.hpp>
+#include <voxel-blaze/graphics/shader.hpp>
 
 Model::Model(const std::vector<unsigned> &indices, const std::vector<Vertex> &vertices) : vertex_count(indices.size())
 {

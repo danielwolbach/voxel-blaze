@@ -1,74 +1,30 @@
-#pragma once
+namespace consts {
+    const char *vertex_shader_source = R""""(
+    #version 440 core
 
-#include <voxel-blaze/common.hpp>
+    layout (location = 0) in vec3 in_position;
+    layout (location = 1) in vec3 in_color;
+    out vec3 pass_color;
+    uniform mat4 model_transform;
+    uniform mat4 view_transform;
+    uniform mat4 projection_transform;
 
-const std::vector<float> cube_vertices = {
-    // Front face
-    -0.5f, -0.5f, 0.5f, // Position
-    1.0f, 0.0f, 0.0f,   // Color
-    0.5f, -0.5f, 0.5f,  // Position
-    1.0f, 0.0f, 0.0f,   // Color
-    0.5f, 0.5f, 0.5f,   // Position
-    1.0f, 0.0f, 0.0f,   // Color
-    -0.5f, 0.5f, 0.5f,  // Position
-    1.0f, 0.0f, 0.0f,   // Color
+    void main()
+    {
+        pass_color = in_color;
+        gl_Position = projection_transform * view_transform * model_transform * vec4(in_position, 1.0);
+    }
+    )"""";
 
-    // Back face
-    -0.5f, -0.5f, -0.5f, // Position
-    0.0f, 1.0f, 0.0f,    // Color
-    0.5f, -0.5f, -0.5f,  // Position
-    0.0f, 1.0f, 0.0f,    // Color
-    0.5f, 0.5f, -0.5f,   // Position
-    0.0f, 1.0f, 0.0f,    // Color
-    -0.5f, 0.5f, -0.5f,  // Position
-    0.0f, 1.0f, 0.0f,    // Color
+    const char *fragment_shader_source = R""""(
+    #version 440 core
 
-    // Right face
-    0.5f, -0.5f, 0.5f,  // Position
-    0.0f, 0.0f, 1.0f,   // Color
-    0.5f, -0.5f, -0.5f, // Position
-    0.0f, 0.0f, 1.0f,   // Color
-    0.5f, 0.5f, -0.5f,  // Position
-    0.0f, 0.0f, 1.0f,   // Color
-    0.5f, 0.5f, 0.5f,   // Position
-    0.0f, 0.0f, 1.0f,   // Color
+    in vec3 pass_color;
+    out vec4 out_color;
 
-    // Left face
-    -0.5f, -0.5f, 0.5f,  // Position
-    1.0f, 1.0f, 0.0f,    // Color
-    -0.5f, -0.5f, -0.5f, // Position
-    1.0f, 1.0f, 0.0f,    // Color
-    -0.5f, 0.5f, -0.5f,  // Position
-    1.0f, 1.0f, 0.0f,    // Color
-    -0.5f, 0.5f, 0.5f,   // Position
-    1.0f, 1.0f, 0.0f,    // Color
-
-    // Top face
-    -0.5f, 0.5f, 0.5f,  // Position
-    0.0f, 1.0f, 1.0f,   // Color
-    0.5f, 0.5f, 0.5f,   // Position
-    0.0f, 1.0f, 1.0f,   // Color
-    0.5f, 0.5f, -0.5f,  // Position
-    0.0f, 1.0f, 1.0f,   // Color
-    -0.5f, 0.5f, -0.5f, // Position
-    0.0f, 1.0f, 1.0f,   // Color
-
-    // Bottom face
-    -0.5f, -0.5f, 0.5f,  // Position
-    1.0f, 0.0f, 1.0f,    // Color
-    0.5f, -0.5f, 0.5f,   // Position
-    1.0f, 0.0f, 1.0f,    // Color
-    0.5f, -0.5f, -0.5f,  // Position
-    1.0f, 0.0f, 1.0f,    // Color
-    -0.5f, -0.5f, -0.5f, // Position
-    1.0f, 0.0f, 1.0f     // Color
-};
-
-const std::vector<unsigned> cube_indices = {
-    0,  1,  2,  2,  3,  0,  // Front face
-    4,  5,  6,  6,  7,  4,  // Back face
-    8,  9,  10, 10, 11, 8,  // Right face
-    12, 13, 14, 14, 15, 12, // Left face
-    16, 17, 18, 18, 19, 16, // Top face
-    20, 21, 22, 22, 23, 20  // Bottom face
-};
+    void main()
+    {
+        out_color = vec4(pass_color, 1.0f);
+    }
+    )"""";
+}

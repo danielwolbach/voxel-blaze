@@ -1,7 +1,4 @@
-#include "voxel-blaze/common.hpp"
-#include <GLFW/glfw3.h>
-#include <spdlog/spdlog.h>
-#include <voxel-blaze/window.hpp>
+#include <voxel-blaze/graphics/window.hpp>
 
 Window::Window(const unsigned width, const unsigned height)
 {
@@ -45,7 +42,6 @@ bool Window::opened() const
 {
     glfwSwapBuffers(static_cast<GLFWwindow *>(handle));
     glfwPollEvents();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return !glfwWindowShouldClose(static_cast<GLFWwindow *>(handle));
 }
 

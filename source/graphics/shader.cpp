@@ -1,4 +1,4 @@
-#include <voxel-blaze/shader.hpp>
+#include <voxel-blaze/graphics/shader.hpp>
 
 Shader::Shader(const std::string &vertex_source, const std::string &fragment_source)
 {
@@ -13,6 +13,12 @@ Shader::Shader(const std::string &vertex_source, const std::string &fragment_sou
     glValidateProgram(handle);
     glDeleteShader(vertex_module);
     glDeleteShader(fragment_module);
+}
+
+Shader::Shader(Shader &&other)
+    : handle(other.handle)
+{
+    other.handle = 0;
 }
 
 Shader::~Shader()
@@ -44,15 +50,6 @@ unsigned Shader::compile(const std::string &source, const unsigned type) const
     }
 
     return shader_module;
-}
-
-void Shader::draw(const Model &model) const
-{
-    glUseProgram(handle);
-    glBindVertexArray(model.vertex_array);
-    glDrawElements(GL_TRIANGLES, model.vertex_count, GL_UNSIGNED_INT, nullptr);
-    glBindVertexArray(0);
-    glUseProgram(0);
 }
 
 void Shader::upload_transform(const std::string &location, const float *data) const
