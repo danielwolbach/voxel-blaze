@@ -1,15 +1,15 @@
 #include <voxel-blaze/graphics/vertex.hpp>
 
-std::vector<Vertex> Vertex::generate_cube_vertices(const float offset_x, const float offset_y, const float offset_z)
+std::vector<Vertex> Vertex::generate_cube_vertices(const Vertex &base)
 {
-    std::vector<Vertex> vertices = {{offset_x, offset_y, offset_z, 1.0, 1.0, 1.0},
-                                    {offset_x + 1.0F, offset_y, offset_z, 1.0, 1.0, 1.0},
-                                    {offset_x + 1.0F, offset_y + 1.0F, offset_z, 1.0, 1.0, 1.0},
-                                    {offset_x, offset_y + 1.0F, offset_z, 1.0, 1.0, 1.0},
-                                    {offset_x, offset_y, offset_z + 1.0F, 1.0, 1.0, 1.0},
-                                    {offset_x + 1.0F, offset_y, offset_z + 1.0F, 1.0, 1.0, 1.0},
-                                    {offset_x + 1.0F, offset_y + 1.0F, offset_z + 1.0F, 1.0, 1.0, 1.0},
-                                    {offset_x, offset_y + 1.0F, offset_z + 1.0F, 1.0, 1.0, 1.0}};
+    std::vector<Vertex> vertices = {
+        {base.x, base.y, base.z, base.r, base.g, base.b}, {base.x + 1.0F, base.y, base.z, base.r, base.g, base.b},
+        {base.x + 1.0F, base.y + 1.0F, base.z, base.r, base.g, base.b},
+        {base.x, base.y + 1.0F, base.z, base.r, base.g, base.b},
+        {base.x, base.y, base.z + 1.0F, base.r, base.g, base.b},
+        {base.x + 1.0F, base.y, base.z + 1.0F, base.r, base.g, base.b},
+        {base.x + 1.0F, base.y + 1.0F, base.z + 1.0F, base.r, base.g, base.b},
+        {base.x, base.y + 1.0F, base.z + 1.0F, base.r, base.g, base.b}};
     return vertices;
 }
 

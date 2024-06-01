@@ -3,6 +3,11 @@
 
 Model::Model(const Mesh &mesh) : vertex_count(mesh.indices.size())
 {
+    if (vertex_count == 0)
+    {
+        spdlog::warn("There are no vertices in the provided mesh");
+    }
+
     // Prepare vertex buffer.
     glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);

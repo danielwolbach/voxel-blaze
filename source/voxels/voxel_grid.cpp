@@ -5,6 +5,11 @@ VoxelGrid::VoxelGrid(const unsigned size_x, const unsigned size_y, const unsigne
 {
 }
 
+unsigned VoxelGrid::max_size() const
+{
+    return std::max({size_x, size_y, size_z});
+}
+
 unsigned VoxelGrid::fill_cuboid(const Voxel &voxel)
 {
     unsigned counter = 0;
@@ -77,9 +82,18 @@ Mesh VoxelGrid::meshify_direct() const
 
                 if (voxel_optional.has_value())
                 {
-                    const auto single_vertices =
-                        Vertex::generate_cube_vertices((float)x - (float)size_x / 2.0f, (float)y - (float)size_y / 2.0f,
-                                                       (float)z - (float)size_z / 2.0f);
+                    const auto voxel = voxel_optional.value();
+                    const auto base = Vertex 
+                    {
+                        (float)x - (float)size_x / 2.0f,
+                        (float)y - (float)size_y / 2.0f,
+                        (float)z - (float)size_z / 2.0f,
+                        voxel.r,
+                        voxel.g,
+                        voxel.b
+                    };
+                    
+                    const auto single_vertices = Vertex::generate_cube_vertices(base);
                     const auto single_indices = Vertex::generate_cube_indices();
 
                     for (const auto i : single_indices)
@@ -125,9 +139,18 @@ Mesh VoxelGrid::meshify_culled() const
 
                 if (voxel_optional.has_value())
                 {
-                    const auto single_vertices =
-                        Vertex::generate_cube_vertices((float)x - (float)size_x / 2.0f, (float)y - (float)size_y / 2.0f,
-                                                       (float)z - (float)size_z / 2.0f);
+                    const auto voxel = voxel_optional.value();
+                    const auto base = Vertex 
+                    {
+                        (float)x - (float)size_x / 2.0f,
+                        (float)y - (float)size_y / 2.0f,
+                        (float)z - (float)size_z / 2.0f,
+                        voxel.r,
+                        voxel.g,
+                        voxel.b
+                    };
+
+                    const auto single_vertices = Vertex::generate_cube_vertices(base);
 
                     const auto positive_x_face = {2, 6, 5, 5, 1, 2};
                     const auto negative_x_face = {0, 4, 7, 7, 3, 0};

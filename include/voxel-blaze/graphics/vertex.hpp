@@ -9,13 +9,13 @@ struct Vertex
 
     inline bool operator==(const Vertex &other) const
     {
-        const float epsilon = 1e-5;
+        const float epsilon = glm::epsilon<float>();
         return std::fabs(x - other.x) < epsilon && std::fabs(y - other.y) < epsilon &&
                std::fabs(z - other.z) < epsilon && std::fabs(r - other.r) < epsilon &&
                std::fabs(g - other.g) < epsilon && std::fabs(b - other.b) < epsilon;
     }
 
-    static std::vector<Vertex> generate_cube_vertices(const float offset_x, const float offset_y, const float offset_z);
+    static std::vector<Vertex> generate_cube_vertices(const Vertex &base);
     static std::vector<unsigned> generate_cube_indices();
 };
 

@@ -4,5 +4,5 @@
 
 struct Voxel
 {
-
+    float r, g, b;
 };

@@ -9,6 +9,7 @@ dependencies = [
 
 source_files = [
   'source/main.cpp',
+  'source/consts.cpp',
   'source/graphics/window.cpp',
   'source/graphics/shader.cpp',
   'source/graphics/model.cpp',
@@ -17,6 +18,7 @@ source_files = [
   'source/graphics/camera.cpp',
   'source/voxels/voxel_grid.cpp',
   'source/voxels/array_voxel_grid.cpp',
+  'source/parsers/vox_parser.cpp',
   'lib/glad.c',
 ]
 
