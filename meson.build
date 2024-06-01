@@ -4,6 +4,7 @@ dependencies = [
   dependency('glfw3'),
   dependency('spdlog'),
   dependency('glm'),
+  dependency('fmt'),
 ]
 
 source_files = [

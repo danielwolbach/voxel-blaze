@@ -5,7 +5,7 @@
 #include <voxel-blaze/graphics/window.hpp>
 #include <voxel-blaze/voxels/array_voxel_grid.hpp>
 
-const unsigned cubic_size = 2;
+const unsigned cubic_size = 8;
 
 int main()
 {
@@ -18,10 +18,13 @@ int main()
 
     ArrayVoxelGrid voxel_grid(cubic_size, cubic_size, cubic_size);
     voxel_grid.fill_cuboid(Voxel{});
-    Model model = voxel_grid.meshify_direct();
+    Model model = voxel_grid.meshify_culled();
 
     while (window.opened())
     {
-        renderer.draw(camera, model);
+        const auto delta_time = renderer.draw(camera, model);
+        const auto speed = delta_time * 10;
+
+        model.rotate(glm::vec3(0.0, 0.0, speed));
     }
 }

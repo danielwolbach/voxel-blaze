@@ -16,6 +16,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <fmt/core.h>
 
 class Wrapper
 {

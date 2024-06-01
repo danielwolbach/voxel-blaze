@@ -1,13 +1,15 @@
 #pragma once
 
 #include <voxel-blaze/common.hpp>
-#include <voxel-blaze/graphics/vertex.hpp>
+#include <voxel-blaze/graphics/mesh.hpp>
 
 class Model : Wrapper
 {
   public:
-    Model(const std::vector<unsigned> &indices, const std::vector<Vertex> &vertices);
+    Model(const Mesh &mesh);
     ~Model();
+    void rotate(const glm::vec3 angles);
+    glm::mat4 get_tranform() const;
 
   private:
     friend class Renderer;
@@ -15,4 +17,5 @@ class Model : Wrapper
     unsigned vertex_count;
     unsigned vertex_buffer;
     unsigned vertex_array;
+    glm::mat4 transform = glm::mat4(1.0f);
 };

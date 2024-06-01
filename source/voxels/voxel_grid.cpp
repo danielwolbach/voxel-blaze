@@ -5,7 +5,7 @@ VoxelGrid::VoxelGrid(const unsigned size_x, const unsigned size_y, const unsigne
 {
 }
 
-void VoxelGrid::fill_cuboid(const Voxel &voxel)
+unsigned VoxelGrid::fill_cuboid(const Voxel &voxel)
 {
     unsigned counter = 0;
 
@@ -22,9 +22,11 @@ void VoxelGrid::fill_cuboid(const Voxel &voxel)
     }
 
     spdlog::info("Filled a total of {} voxels.", counter);
+
+    return counter;
 }
 
-void VoxelGrid::fill_ellipsoid(const Voxel &voxel)
+unsigned VoxelGrid::fill_ellipsoid(const Voxel &voxel)
 {
     unsigned counter = 0;
 
@@ -55,9 +57,11 @@ void VoxelGrid::fill_ellipsoid(const Voxel &voxel)
     }
 
     spdlog::info("Filled a total of {} voxels.", counter);
+
+    return counter;
 }
 
-Model VoxelGrid::meshify_direct() const
+Mesh VoxelGrid::meshify_direct() const
 {
     std::vector<Vertex> vertices;
     std::vector<unsigned> indices;
@@ -69,17 +73,19 @@ Model VoxelGrid::meshify_direct() const
         {
             for (unsigned z = 0; z < size_z; z++)
             {
-                auto voxel_optional = get_voxel(x, y, z);
+                const auto voxel_optional = get_voxel(x, y, z);
 
                 if (voxel_optional.has_value())
                 {
-                    auto single_vertices = Vertex::generate_cube_vertices(x, y, z);
-                    auto single_indices = Vertex::generate_cube_indices();
+                    const auto single_vertices =
+                        Vertex::generate_cube_vertices((float)x - (float)size_x / 2.0f, (float)y - (float)size_y / 2.0f,
+                                                       (float)z - (float)size_z / 2.0f);
+                    const auto single_indices = Vertex::generate_cube_indices();
 
-                    for (auto i : single_indices)
+                    for (const auto i : single_indices)
                     {
-                        auto vertex = single_vertices[i];
-                        auto it = map.find(vertex);
+                        const auto vertex = single_vertices[i];
+                        const auto it = map.find(vertex);
 
                         if (it != map.end())
                         {
@@ -97,7 +103,94 @@ Model VoxelGrid::meshify_direct() const
         }
     }
 
-    spdlog::info("Meshified (direct) with {} vertices and {} faces.", vertices.size(), indices.size() / 3);
+    spdlog::info("Meshified (culled) with {} vertices and {} triangle faces ({} square faces).", vertices.size(),
+                 indices.size() / 3, indices.size() / 3 / 2);
 
-	return Model(indices, vertices);
+    return Mesh{indices, vertices};
+}
+
+Mesh VoxelGrid::meshify_culled() const
+{
+    std::vector<Vertex> vertices;
+    std::vector<unsigned> indices;
+    std::unordered_map<Vertex, unsigned> map;
+
+    for (unsigned x = 0; x < size_x; x++)
+    {
+        for (unsigned y = 0; y < size_y; y++)
+        {
+            for (unsigned z = 0; z < size_z; z++)
+            {
+                const auto voxel_optional = get_voxel(x, y, z);
+
+                if (voxel_optional.has_value())
+                {
+                    const auto single_vertices =
+                        Vertex::generate_cube_vertices((float)x - (float)size_x / 2.0f, (float)y - (float)size_y / 2.0f,
+                                                       (float)z - (float)size_z / 2.0f);
+
+                    const auto positive_x_face = {2, 6, 5, 5, 1, 2};
+                    const auto negative_x_face = {0, 4, 7, 7, 3, 0};
+                    const auto positive_y_face = {2, 3, 7, 7, 6, 2};
+                    const auto negative_y_face = {1, 5, 4, 4, 0, 1};
+                    const auto positive_z_face = {4, 5, 6, 6, 7, 4};
+                    const auto negative_z_face = {0, 2, 1, 2, 0, 3};
+
+                    auto single_indices = std::vector<unsigned>{};
+
+                    if (x == size_x - 1 || !get_voxel(x + 1, y, z).has_value())
+                    {
+                        single_indices.insert(single_indices.end(), positive_x_face.begin(), positive_x_face.end());
+                    }
+
+                    if (x == 0 || !get_voxel(x - 1, y, z).has_value())
+                    {
+                        single_indices.insert(single_indices.end(), negative_x_face.begin(), negative_x_face.end());
+                    }
+
+                    if (y == size_y - 1 || !get_voxel(x, y + 1, z).has_value())
+                    {
+                        single_indices.insert(single_indices.end(), positive_y_face.begin(), positive_y_face.end());
+                    }
+
+                    if (y == 0 || !get_voxel(x, y - 1, z).has_value())
+                    {
+                        single_indices.insert(single_indices.end(), negative_y_face.begin(), negative_y_face.end());
+                    }
+
+                    if (z == size_z - 1 || !get_voxel(x, y, z + 1).has_value())
+                    {
+                        single_indices.insert(single_indices.end(), positive_z_face.begin(), positive_z_face.end());
+                    }
+
+                    if (z == 0 || !get_voxel(x, y, z - 1).has_value())
+                    {
+                        single_indices.insert(single_indices.end(), negative_z_face.begin(), negative_z_face.end());
+                    }
+
+                    for (const auto i : single_indices)
+                    {
+                        const auto vertex = single_vertices[i];
+                        const auto it = map.find(vertex);
+
+                        if (it != map.end())
+                        {
+                            indices.push_back(it->second);
+                        }
+                        else
+                        {
+                            map[vertex] = vertices.size();
+                            indices.push_back(vertices.size());
+                            vertices.push_back(vertex);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    spdlog::info("Meshified (culled) with {} vertices and {} triangle faces ({} square faces).", vertices.size(),
+                 indices.size() / 3, indices.size() / 3 / 2);
+
+    return Mesh{indices, vertices};
 }
