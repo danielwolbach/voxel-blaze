@@ -15,15 +15,16 @@ const unsigned cubic_size = 16;
 int main()
 {
     spdlog::set_level(spdlog::level::info);
-    Window window(720, 720);
+    Window window(1280, 1280);
     Shader shader(consts::vertex_shader_source, consts::fragment_shader_source);
     Renderer renderer(std::move(shader));
 
     Camera camera;
 
-    VoxParser parser("resources/monu.vox");
+    VoxParser parser("resources/teapot.vox");
     const auto voxel_grid = parser.get_voxel_grid();
     Model model = voxel_grid->meshify_greedy();
+    model.rotate(glm::vec3(-glm::pi<float>() / 2.0f, 0.0f, 0.0f));
 
     // auto voxel_grid = ArrayVoxelGrid(cubic_size, cubic_size, cubic_size);
     // voxel_grid.fill_ellipsoid(Voxel{1.0f, 1.0f, 1.0f});
@@ -31,15 +32,14 @@ int main()
     // // voxel_grid.set_voxel(0, 1, 0, std::nullopt);
     // // voxel_grid.set_voxel(0, cubic_size / 2, cubic_size / 2, std::nullopt);
     // auto model = Model(voxel_grid.meshify_greedy());
-    // // model.rotate(glm::vec3(-glm::pi<float>() / 2.0f, 0.0f, 0.0f));
     // //model.translate(glm::vec3(cubic_size / 2, cubic_size / 2, cubic_size / 2));
 
-    camera.look_at(glm::vec3(cubic_size / 2, cubic_size / 2, voxel_grid->max_size() * 2), glm::vec3(0));
+    camera.look_at(glm::vec3(cubic_size / 2, cubic_size / 2, voxel_grid->max_size() * 1.5f), glm::vec3(0));
 
     while (window.opened())
     {
         const auto delta_time = renderer.draw(camera, model);
-        const auto speed = delta_time * 10;
+        const auto speed = delta_time * 0.05f;
 
         if (window.key_down(GLFW_KEY_Q))
         {

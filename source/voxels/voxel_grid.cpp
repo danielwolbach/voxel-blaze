@@ -345,14 +345,17 @@ Mesh VoxelGrid::meshify_greedy() const
 
                         float color[3] = {mask_optional->r, mask_optional->g, mask_optional->b};
 
+                        float start_x = -(float)size_x / 2.0f;
+                        float start_y = -(float)size_y / 2.0f;
+                        float start_z = -(float)size_z / 2.0f;
+
                         const auto face_vertices = std::vector<Vertex>(
-                            {Vertex{(float)x[0], (float)x[1], (float)x[2], color[0], color[1], color[2]},
-                             Vertex{(float)x[0] + du[0], (float)x[1] + du[1], (float)x[2] + du[2], color[0], color[1],
-                                    color[2]},
-                             Vertex{(float)x[0] + dv[0], (float)x[1] + dv[1], (float)x[2] + dv[2], color[0], color[1],
-                                    color[2]},
-                             Vertex{(float)x[0] + du[0] + dv[0], (float)x[1] + du[1] + dv[1],
-                                    (float)x[2] + du[2] + dv[2], color[0], color[1], color[2]}});
+                        {
+                            Vertex{start_x + (float)x[0],                 start_y + (float)x[1],                 start_z + (float)x[2],                 color[0], color[1], color[2]},
+                            Vertex{start_x + (float)x[0] + du[0],         start_y + (float)x[1] + du[1],         start_z + (float)x[2] + du[2],         color[0], color[1], color[2]},
+                            Vertex{start_x + (float)x[0] + dv[0],         start_y + (float)x[1] + dv[1],         start_z + (float)x[2] + dv[2],         color[0], color[1], color[2]},
+                            Vertex{start_x + (float)x[0] + du[0] + dv[0], start_y + (float)x[1] + du[1] + dv[1], start_z + (float)x[2] + du[2] + dv[2], color[0], color[1], color[2]}
+                        });
 
                         const auto front_face_indices = {0, 2, 1, 1, 2, 3};
                         const auto back_face_indices = {0, 1, 2, 1, 3, 2};
