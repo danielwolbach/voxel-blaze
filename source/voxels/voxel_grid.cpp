@@ -238,8 +238,8 @@ class Mask2D
     const unsigned size_u;
     const unsigned size_v;
 
-    inline Mask2D(unsigned size_u, unsigned size_v)
-        : size_u(size_u), size_v(size_v), data(size_u * size_v, std::nullopt)
+    inline Mask2D(unsigned size_u, unsigned size_v) 
+        : data(size_u * size_v, std::nullopt), size_u(size_u), size_v(size_v)
     {
     }
 
@@ -267,12 +267,12 @@ Mesh VoxelGrid::meshify_greedy() const
 
     for (unsigned dimension = 0; dimension < 3; dimension += 1)
     {
-        const int sizes[] = {size_x, size_y, size_z};
-        const int u = (dimension + 1) % 3;
-        const int v = (dimension + 2) % 3;
+        const unsigned sizes[] = {size_x, size_y, size_z};
+        const unsigned u = (dimension + 1) % 3;
+        const unsigned v = (dimension + 2) % 3;
 
-        int x[3] = {0, 0, 0};
-        int direction[] = {0, 0, 0};
+        unsigned x[3] = {0, 0, 0};
+        unsigned direction[] = {0, 0, 0};
         direction[dimension] = 1;
 
         for (x[dimension] = 0; x[dimension] <= sizes[dimension]; x[dimension]++)
@@ -305,9 +305,9 @@ Mesh VoxelGrid::meshify_greedy() const
                 }
             }
 
-            for (int temp_v = 0; temp_v < sizes[v]; ++temp_v)
+            for (unsigned temp_v = 0; temp_v < sizes[v]; ++temp_v)
             {
-                for (int temp_u = 0; temp_u < sizes[u]; ++temp_u)
+                for (unsigned temp_u = 0; temp_u < sizes[u]; ++temp_u)
                 {
                     auto mask_optional = mask.get(temp_u, temp_v);
                     if (mask_optional.has_value())
@@ -392,7 +392,7 @@ Mesh VoxelGrid::meshify_greedy() const
                             }
                         }
 
-                        spdlog::info("Found quad at ({}, {}, {}) width size ({}, {})", x[0], x[1], x[2], w, h);
+                        spdlog::trace("Found quad at ({}, {}, {}) width size ({}, {})", x[0], x[1], x[2], w, h);
                         temp_u += w - 1;
                     }
                 }
