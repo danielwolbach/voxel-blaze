@@ -39,6 +39,11 @@ Model::~Model()
     glDeleteBuffers(1, &vertex_buffer);
 }
 
+void Model::translate(const glm::vec3 translations)
+{
+    transform = glm::translate(transform, translations);
+}
+
 void Model::rotate(const glm::vec3 angles)
 {
     transform = glm::rotate(transform, angles.x, glm::vec3(1.0, 0.0, 0.0));

@@ -8,6 +8,7 @@ class Model : Wrapper
   public:
     Model(const Mesh &mesh);
     ~Model();
+    void translate(const glm::vec3 translations);
     void rotate(const glm::vec3 angles);
     glm::mat4 get_tranform() const;
 

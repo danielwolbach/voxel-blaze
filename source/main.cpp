@@ -10,10 +10,11 @@
 // TODO Handle alpha transparency.
 // TODO Implement orbit camera.
 
-const unsigned cubic_size = 128;
+const unsigned cubic_size = 16;
 
 int main()
 {
+    spdlog::set_level(spdlog::level::info);
     Window window(720, 720);
     Shader shader(consts::vertex_shader_source, consts::fragment_shader_source);
     Renderer renderer(std::move(shader));
@@ -22,9 +23,18 @@ int main()
 
     VoxParser parser("resources/monu.vox");
     const auto voxel_grid = parser.get_voxel_grid();
-    Model model = voxel_grid->meshify_culled();
-    model.rotate(glm::vec3(-glm::pi<float>() / 2.0f, 0.0f, 0.0f));
-    camera.look_at(glm::vec3(0.0f, 0.0f, voxel_grid->max_size() * 2), glm::vec3(0));
+    Model model = voxel_grid->meshify_greedy();
+
+    // auto voxel_grid = ArrayVoxelGrid(cubic_size, cubic_size, cubic_size);
+    // voxel_grid.fill_ellipsoid(Voxel{1.0f, 1.0f, 1.0f});
+    // // voxel_grid.set_voxel(0, 0, 0, std::nullopt);
+    // // voxel_grid.set_voxel(0, 1, 0, std::nullopt);
+    // // voxel_grid.set_voxel(0, cubic_size / 2, cubic_size / 2, std::nullopt);
+    // auto model = Model(voxel_grid.meshify_greedy());
+    // // model.rotate(glm::vec3(-glm::pi<float>() / 2.0f, 0.0f, 0.0f));
+    // //model.translate(glm::vec3(cubic_size / 2, cubic_size / 2, cubic_size / 2));
+
+    camera.look_at(glm::vec3(cubic_size / 2, cubic_size / 2, voxel_grid->max_size() * 2), glm::vec3(0));
 
     while (window.opened())
     {

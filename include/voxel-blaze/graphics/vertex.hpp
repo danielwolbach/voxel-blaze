@@ -2,7 +2,7 @@
 
 #include <voxel-blaze/common.hpp>
 
-struct Vertex
+struct  Vertex
 {
     float x = 0, y = 0, z = 0;
     float r = 1.0, g = 1.0, b = 1.0;

@@ -9,6 +9,7 @@ Renderer::Renderer(Shader &&shader) : shader(std::move(shader))
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(2.0f);
 }
 
 float Renderer::draw(const Camera &camera, const Model &model)

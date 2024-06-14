@@ -16,6 +16,7 @@ class VoxelGrid
     unsigned max_size() const;
     Mesh meshify_direct() const;
     Mesh meshify_culled() const;
+    Mesh meshify_greedy() const;
 
   protected:
     const unsigned size_x;
