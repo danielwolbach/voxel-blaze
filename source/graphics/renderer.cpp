@@ -8,7 +8,7 @@ Renderer::Renderer(Shader &&shader) : shader(std::move(shader))
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(2.0f);
 }
 

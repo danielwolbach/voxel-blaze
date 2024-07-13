@@ -66,6 +66,34 @@ unsigned VoxelGrid::fill_ellipsoid(const Voxel &voxel)
     return counter;
 }
 
+unsigned VoxelGrid::fill_perlin_noise(const Voxel &voxel, float frequency)
+{
+    unsigned counter = 0;
+
+    for (unsigned x = 0; x < size_x; x++)
+    {
+        for (unsigned y = 0; y < size_y; y++)
+        {
+            for (unsigned z = 0; z < size_z; z++)
+            {
+                glm::vec3 pos = glm::vec3(x, y, z) * frequency;
+
+                float noise_value = glm::perlin(pos);
+
+                if (noise_value > 0.0f)
+                {
+                    set_voxel(x, y, z, voxel);
+                    counter += 1;
+                }
+            }
+        }
+    }
+
+    spdlog::info("Filled a total of {} voxels with Perlin noise.", counter);
+
+    return counter;
+}
+
 Mesh VoxelGrid::meshify_direct() const
 {
     std::vector<Vertex> vertices;
@@ -114,7 +142,7 @@ Mesh VoxelGrid::meshify_direct() const
         }
     }
 
-    spdlog::info("Meshified (culled) with {} vertices and {} triangle faces ({} square faces).", vertices.size(),
+    spdlog::info("Meshified (direct) with {} vertices and {} triangle faces ({} square faces).", vertices.size(),
                  indices.size() / 3, indices.size() / 3 / 2);
 
     return Mesh{indices, vertices};
@@ -238,7 +266,7 @@ class Mask2D
     const unsigned size_u;
     const unsigned size_v;
 
-    inline Mask2D(unsigned size_u, unsigned size_v) 
+    inline Mask2D(unsigned size_u, unsigned size_v)
         : data(size_u * size_v, std::nullopt), size_u(size_u), size_v(size_v)
     {
     }
@@ -350,12 +378,14 @@ Mesh VoxelGrid::meshify_greedy() const
                         float start_z = -(float)size_z / 2.0f;
 
                         const auto face_vertices = std::vector<Vertex>(
-                        {
-                            Vertex{start_x + (float)x[0],                 start_y + (float)x[1],                 start_z + (float)x[2],                 color[0], color[1], color[2]},
-                            Vertex{start_x + (float)x[0] + du[0],         start_y + (float)x[1] + du[1],         start_z + (float)x[2] + du[2],         color[0], color[1], color[2]},
-                            Vertex{start_x + (float)x[0] + dv[0],         start_y + (float)x[1] + dv[1],         start_z + (float)x[2] + dv[2],         color[0], color[1], color[2]},
-                            Vertex{start_x + (float)x[0] + du[0] + dv[0], start_y + (float)x[1] + du[1] + dv[1], start_z + (float)x[2] + du[2] + dv[2], color[0], color[1], color[2]}
-                        });
+                            {Vertex{start_x + (float)x[0], start_y + (float)x[1], start_z + (float)x[2], color[0],
+                                    color[1], color[2]},
+                             Vertex{start_x + (float)x[0] + du[0], start_y + (float)x[1] + du[1],
+                                    start_z + (float)x[2] + du[2], color[0], color[1], color[2]},
+                             Vertex{start_x + (float)x[0] + dv[0], start_y + (float)x[1] + dv[1],
+                                    start_z + (float)x[2] + dv[2], color[0], color[1], color[2]},
+                             Vertex{start_x + (float)x[0] + du[0] + dv[0], start_y + (float)x[1] + du[1] + dv[1],
+                                    start_z + (float)x[2] + du[2] + dv[2], color[0], color[1], color[2]}});
 
                         const auto front_face_indices = {0, 2, 1, 1, 2, 3};
                         const auto back_face_indices = {0, 1, 2, 1, 3, 2};
