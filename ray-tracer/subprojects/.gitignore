@@ -1,0 +1,6 @@
+packagecache
+glfw-*
+spdlog-*
+glm-*
+fmt-*
+!*.wrap
