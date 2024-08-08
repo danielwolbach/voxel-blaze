@@ -1,21 +1,14 @@
 project('voxel-ray-tracer', 'c', 'cpp')
 
 dependencies = [
-  dependency('glm'),
-  dependency('openmp'),
+  dependency('glfw3', static: true),
+  dependency('spdlog', static: true),
+  dependency('glm', static: true),
+  dependency('glew', static: true),
 ]
 
 source_files = [
-  'source/box.cpp',
-  'source/main.cpp',
-  'source/octree.cpp',
-  'source/ray.cpp',
-  'source/renderer.cpp',
+    'main.cpp'
 ]
 
-include_directories = include_directories('include')
-
-executable('voxel-ray-tracer', source_files,
-           include_directories: include_directories,
-           dependencies: dependencies)
-
+executable('voxel-ray-tracer', source_files, dependencies: dependencies, install: true)

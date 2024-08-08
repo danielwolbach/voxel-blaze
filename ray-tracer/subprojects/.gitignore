@@ -3,4 +3,5 @@ glfw-*
 spdlog-*
 glm-*
 fmt-*
+glew-*
 !*.wrap
