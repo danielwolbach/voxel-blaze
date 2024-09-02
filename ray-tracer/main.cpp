@@ -24,12 +24,13 @@
         }                                           \
     } while (0)
 
-const auto SCREEN_WIDTH = 1920U;
-const auto SCREEN_HEIGHT = 1080U;
+const auto SCREEN_WIDTH = 1280U;
+const auto SCREEN_HEIGHT = 720U;
 const auto ENABLE_VSYNC = false;
 const auto OPENGL_MAJOR_VERSION = 4U;
 const auto OPENGL_MINOR_VERSION = 6U;
-const auto VOXEL_GRID_SIZE = glm::ivec3(256, 256, 256);
+
+auto voxel_grid_size = glm::ivec3(128, 128, 128);
 
 GLfloat QUAD_VERTICES[] =
     {
@@ -102,20 +103,26 @@ auto compile_shader(GLenum type, const char *source)
     return shader;
 }
 
-auto read_file(const std::string &filePath)
+auto read_file(const std::string &file_path)
 {
-    std::ifstream input_stream(filePath);
+    std::ifstream input_stream(file_path);
     if (!input_stream.is_open())
     {
-        throw std::runtime_error("Could not open file: " + filePath);
+        throw std::runtime_error("Could not open file: " + file_path);
     }
     std::ostringstream content_stream;
     content_stream << input_stream.rdbuf();
     return content_stream.str();
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    // CLI settings.
+    if (argc == 2) {
+        auto size = std::strtoul(argv[1], nullptr, 10);
+        voxel_grid_size = glm::ivec3(size, size, size);
+    }
+    
     // Initialize environment.
     if (glfwInit() == GLFW_FALSE)
     {
@@ -144,19 +151,6 @@ int main()
     }
 
     glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-    // Query size limits.
-    {
-        int max_texture_size = 0;
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
-
-        int max_3d_texture_size = 0;
-        glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &max_3d_texture_size);
-
-        spdlog::info("max texture size: {}", max_texture_size);
-        spdlog::info("max 3d texture size: {}", max_3d_texture_size);
-        spdlog::info("voxel grid size: {} {} {} ({})", VOXEL_GRID_SIZE.x, VOXEL_GRID_SIZE.y, VOXEL_GRID_SIZE.z, VOXEL_GRID_SIZE.x * VOXEL_GRID_SIZE.y * VOXEL_GRID_SIZE.z);
-    }
 
     // Set up vertex array.
     auto vertex_array = 0U;
@@ -229,13 +223,13 @@ int main()
 
     // Fill a voxel grid.
     std::vector<float> voxel_grid;
-    voxel_grid.reserve(VOXEL_GRID_SIZE.x * VOXEL_GRID_SIZE.y * VOXEL_GRID_SIZE.z * 4);
+    voxel_grid.reserve(voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4);
     std::random_device rd;
     std::default_random_engine generator(rd());
     std::uniform_real_distribution<GLfloat> distribution(0.0f, 1.0f);
-    for (auto i = 0U; i < VOXEL_GRID_SIZE.x * VOXEL_GRID_SIZE.y * VOXEL_GRID_SIZE.z * 4; i += 4)
+    for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
     {
-        if (distribution(generator) > 0.95f)
+        if (distribution(generator) > 0.9f)
         {
             voxel_grid.push_back(distribution(generator));
             voxel_grid.push_back(distribution(generator));
@@ -259,7 +253,7 @@ int main()
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT));
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT));
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT));
-    GL_CHECK(glTextureStorage3D(textureID, 1, GL_RGBA32F, VOXEL_GRID_SIZE.x, VOXEL_GRID_SIZE.y, VOXEL_GRID_SIZE.z));
+    GL_CHECK(glTextureStorage3D(textureID, 1, GL_RGBA32F, voxel_grid_size.x, voxel_grid_size.y, voxel_grid_size.z));
     GL_CHECK(glBindImageTexture(1, textureID, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F));
 
     GL_CHECK(glBindTexture(GL_TEXTURE_3D, textureID));
@@ -267,14 +261,16 @@ int main()
         GL_TEXTURE_3D,
         0,
         0, 0, 0,
-        VOXEL_GRID_SIZE.x,
-        VOXEL_GRID_SIZE.y,
-        VOXEL_GRID_SIZE.z,
+        voxel_grid_size.x,
+        voxel_grid_size.y,
+        voxel_grid_size.z,
         GL_RGBA,
         GL_FLOAT,
         voxel_grid.data()));
 
     std::chrono::high_resolution_clock::time_point previousTime = std::chrono::high_resolution_clock::now();
+
+    spdlog::info("Starting render loop...");
 
     // Render loop.
     while (!glfwWindowShouldClose(window))
@@ -375,6 +371,11 @@ int main()
             GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
         }
 
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE))
+        {
+            break;
+        }
+
         GL_CHECK(glUseProgram(tracer_program));
         GL_CHECK(glDispatchCompute(ceil(SCREEN_WIDTH / 8), ceil(SCREEN_HEIGHT / 4), 1));
         GL_CHECK(glMemoryBarrier(GL_ALL_BARRIER_BITS));
@@ -395,11 +396,10 @@ int main()
         if (elapsed.count() >= 1.0f)
         {
             fps = frame_count / elapsed.count();
-            std::cout << "FPS: " << fps << std::endl;
+            spdlog::info("FPS: {}", static_cast<unsigned>(fps));
             last_fps_time = current_time;
             frame_count = 0;
 
-            spdlog::set_level(spdlog::level::debug);
             spdlog::debug("pos   {} {} {} {}", camera_position.x, camera_position.y, camera_position.z, glm::length(camera_position));
             spdlog::debug("dir   {} {} {} {}", camera_direction.x, camera_direction.y, camera_direction.z, glm::length(camera_direction));
             spdlog::debug("upv   {} {} {} {}", camera_up.x, camera_up.y, camera_up.z, glm::length(camera_up));

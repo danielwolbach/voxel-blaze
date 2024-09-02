@@ -11,7 +11,7 @@
 // TODO Handle alpha transparency.
 // TODO Implement orbit camera.
 
-const unsigned cubic_size = 64;
+const unsigned cubic_size = 4;
 const auto locale = std::locale("");
 
 struct Timer

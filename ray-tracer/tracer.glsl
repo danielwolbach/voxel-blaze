@@ -21,15 +21,12 @@ vec4 rcast(vec3 ray_origin, vec3 ray_direction)
     tMax.y = (step.y > 0 ? (pos.y + 1 - ray_origin.y) : (ray_origin.y - pos.y)) * tDelta.y;
     tMax.z = (step.z > 0 ? (pos.z + 1 - ray_origin.z) : (ray_origin.z - pos.z)) * tDelta.z;
 
-    float max_distance = 1000.0;
-    float traveled_distance = 0.0;
-    
     vec4 color = vec4(0);
-    int voxel_grid_size = imageSize(voxgrid).x;
+    ivec3 voxel_grid_size = imageSize(voxgrid);
 
-    while (traveled_distance < max_distance) {
-        if (pos.x >= 0 && pos.x < voxel_grid_size && pos.y >= 0 && pos.y < voxel_grid_size && pos.z >= 0 && pos.z < voxel_grid_size) {
-            int index = pos.x + voxel_grid_size * (pos.y + voxel_grid_size * pos.z);
+    while (true) {
+        if (pos.x >= 0 && pos.x < voxel_grid_size.x && pos.y >= 0 && pos.y < voxel_grid_size.y && pos.z >= 0 && pos.z < voxel_grid_size.z) {
+            int index = pos.x + voxel_grid_size.y * (pos.y + voxel_grid_size.z * pos.z);
             vec4 voxel_color = vec4(imageLoad(voxgrid, pos));
 
             if (voxel_color.a > 0.0) {
@@ -44,23 +41,43 @@ vec4 rcast(vec3 ray_origin, vec3 ray_direction)
        
         if (tMax.x < tMax.y) {
             if (tMax.x < tMax.z) {
-                traveled_distance = tMax.x;
                 pos.x += step.x;
                 tMax.x += tDelta.x;
+
+                if (step.x > 0 && pos.x >= voxel_grid_size.x) {
+                    return color;
+                } else if (step.x < 0 && pos.x < 0) {
+                    return color;
+                }
             } else {
-                traveled_distance = tMax.z; 
                 pos.z += step.z;
                 tMax.z += tDelta.z;
+
+                if (step.z > 0 && pos.z >= voxel_grid_size.z) {
+                    return color;
+                } else if (step.z < 0 && pos.z < 0) {
+                    return color;
+                }
             }
         } else {
             if (tMax.y < tMax.z) {
-                traveled_distance = tMax.y; 
                 pos.y += step.y;
                 tMax.y += tDelta.y;
+
+                if (step.y > 0 && pos.y >= voxel_grid_size.y) {
+                    return color;
+                } else if (step.y < 0 && pos.y < 0) {
+                    return color;
+                }
             } else {
-                traveled_distance = tMax.z; 
                 pos.z += step.z;
                 tMax.z += tDelta.z;
+
+                if (step.z > 0 && pos.z >= voxel_grid_size.z) {
+                    return color;
+                } else if (step.z < 0 && pos.z < 0) {
+                    return color;
+                }
             }
         }
     }
