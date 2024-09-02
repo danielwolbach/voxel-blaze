@@ -1,17 +1,17 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <spdlog/spdlog.h>
-#include <stdexcept>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <glm/glm.hpp>
-#include <string>
 #include <chrono>
 #include <cmath>
+#include <fstream>
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <random>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
+#include <random>
+#include <spdlog/spdlog.h>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 #define GL_CHECK(call)                              \
     do                                              \
@@ -32,34 +32,12 @@ const auto OPENGL_MINOR_VERSION = 6U;
 
 auto voxel_grid_size = glm::ivec3(128, 128, 128);
 
-GLfloat QUAD_VERTICES[] =
-    {
-        -1.0f,
-        -1.0f,
-        0.0f,
-        0.0f,
-        0.0f,
-        -1.0f,
-        1.0f,
-        0.0f,
-        0.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        0.0f,
-        1.0f,
-        1.0f,
-        1.0f,
-        -1.0f,
-        0.0f,
-        1.0f,
-        0.0f,
+GLfloat QUAD_VERTICES[] = {
+    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f,  0.0f, 0.0f, 1.0f,
+    1.0f,  1.0f,  0.0f, 1.0f, 1.0f, 1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
 };
 
-GLuint QUAD_INDICES[] =
-    {
-        0, 2, 1,
-        0, 3, 2};
+GLuint QUAD_INDICES[] = {0, 2, 1, 0, 3, 2};
 
 const char *VERTEX_SHADER_SOURCE = R"glsl(
 #version 460 core
@@ -117,12 +95,25 @@ auto read_file(const std::string &file_path)
 
 int main(int argc, char **argv)
 {
+    std::string mode = "opaque";
+
     // CLI settings.
-    if (argc == 2) {
+    if (argc == 2)
+    {
         auto size = std::strtoul(argv[1], nullptr, 10);
         voxel_grid_size = glm::ivec3(size, size, size);
     }
-    
+    else if (argc == 3)
+    {
+        auto size = std::strtoul(argv[1], nullptr, 10);
+        voxel_grid_size = glm::ivec3(size, size, size);
+        mode = std::string(argv[2]);
+        if (mode != "opaque" && mode != "transparent")
+        {
+            spdlog::error("Incorrect mode! Must be either 'opaque' or 'transparent'.");
+        }
+    }
+
     // Initialize environment.
     if (glfwInit() == GLFW_FALSE)
     {
@@ -217,7 +208,8 @@ int main(int argc, char **argv)
     auto camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
     GL_CHECK(glUseProgram(tracer_program));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
-    GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
+    GL_CHECK(
+        glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
 
@@ -227,21 +219,44 @@ int main(int argc, char **argv)
     std::random_device rd;
     std::default_random_engine generator(rd());
     std::uniform_real_distribution<GLfloat> distribution(0.0f, 1.0f);
-    for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
+    if (mode == "opaque")
     {
-        if (distribution(generator) > 0.9f)
+        for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
         {
-            voxel_grid.push_back(distribution(generator));
-            voxel_grid.push_back(distribution(generator));
-            voxel_grid.push_back(distribution(generator));
-            voxel_grid.push_back(1.0f);
+            if (distribution(generator) > 0.9f)
+            {
+                voxel_grid.push_back(distribution(generator));
+                voxel_grid.push_back(distribution(generator));
+                voxel_grid.push_back(distribution(generator));
+                voxel_grid.push_back(1.0f);
+            }
+            else
+            {
+                voxel_grid.push_back(0.0f);
+                voxel_grid.push_back(0.0f);
+                voxel_grid.push_back(0.0f);
+                voxel_grid.push_back(0.0f);
+            }
         }
-        else
+    }
+    else if (mode == "transparent")
+    {
+        for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
         {
-            voxel_grid.push_back(0.0f);
-            voxel_grid.push_back(0.0f);
-            voxel_grid.push_back(0.0f);
-            voxel_grid.push_back(0.0f);
+            if (distribution(generator) > 0.9f)
+            {
+                voxel_grid.push_back(distribution(generator));
+                voxel_grid.push_back(distribution(generator));
+                voxel_grid.push_back(distribution(generator));
+                voxel_grid.push_back(distribution(generator));
+            }
+            else
+            {
+                voxel_grid.push_back(0.0f);
+                voxel_grid.push_back(0.0f);
+                voxel_grid.push_back(0.0f);
+                voxel_grid.push_back(0.0f);
+            }
         }
     }
 
@@ -257,16 +272,8 @@ int main(int argc, char **argv)
     GL_CHECK(glBindImageTexture(1, textureID, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F));
 
     GL_CHECK(glBindTexture(GL_TEXTURE_3D, textureID));
-    GL_CHECK(glTexSubImage3D(
-        GL_TEXTURE_3D,
-        0,
-        0, 0, 0,
-        voxel_grid_size.x,
-        voxel_grid_size.y,
-        voxel_grid_size.z,
-        GL_RGBA,
-        GL_FLOAT,
-        voxel_grid.data()));
+    GL_CHECK(glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, voxel_grid_size.x, voxel_grid_size.y, voxel_grid_size.z,
+                             GL_RGBA, GL_FLOAT, voxel_grid.data()));
 
     std::chrono::high_resolution_clock::time_point previousTime = std::chrono::high_resolution_clock::now();
 
@@ -292,8 +299,10 @@ int main(int argc, char **argv)
             camera_right = glm::normalize(glm::vec3(rotationMatrix * glm::vec4(camera_right, 1.0f)));
             camera_up = glm::normalize(glm::cross(camera_right, camera_direction));
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1,
+                                  glm::value_ptr(camera_direction)));
+            GL_CHECK(
+                glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
             GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
         }
 
@@ -304,8 +313,10 @@ int main(int argc, char **argv)
             camera_right = glm::normalize(glm::vec3(rotationMatrix * glm::vec4(camera_right, 1.0f)));
             camera_up = glm::normalize(glm::cross(camera_right, camera_direction));
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1,
+                                  glm::value_ptr(camera_direction)));
+            GL_CHECK(
+                glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
             GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
         }
 
@@ -315,7 +326,8 @@ int main(int argc, char **argv)
             camera_direction = glm::normalize(glm::vec3(rotationMatrix * glm::vec4(camera_direction, 1.0f)));
             camera_up = glm::normalize(glm::vec3(rotationMatrix * glm::vec4(camera_up, 1.0f)));
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1,
+                                  glm::value_ptr(camera_direction)));
             GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
         }
 
@@ -325,7 +337,8 @@ int main(int argc, char **argv)
             camera_direction = glm::normalize(glm::vec3(rotationMatrix * glm::vec4(camera_direction, 1.0f)));
             camera_up = glm::normalize(glm::vec3(rotationMatrix * glm::vec4(camera_up, 1.0f)));
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1,
+                                  glm::value_ptr(camera_direction)));
             GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
         }
 
@@ -333,42 +346,48 @@ int main(int argc, char **argv)
         {
             camera_position += moveSpeed * glm::normalize(camera_direction * glm::vec3(1, 0, 1));
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1,
+                                  glm::value_ptr(camera_position)));
         }
 
         if (glfwGetKey(window, GLFW_KEY_S))
         {
             camera_position -= moveSpeed * glm::normalize(camera_direction * glm::vec3(1, 0, 1));
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1,
+                                  glm::value_ptr(camera_position)));
         }
 
         if (glfwGetKey(window, GLFW_KEY_D))
         {
             camera_position += moveSpeed * camera_right;
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1,
+                                  glm::value_ptr(camera_position)));
         }
 
         if (glfwGetKey(window, GLFW_KEY_A))
         {
             camera_position -= moveSpeed * camera_right;
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1,
+                                  glm::value_ptr(camera_position)));
         }
 
         if (glfwGetKey(window, GLFW_KEY_SPACE))
         {
             camera_position += moveSpeed * glm::vec3(0, 1, 0);
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1,
+                                  glm::value_ptr(camera_position)));
         }
 
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT))
         {
             camera_position -= moveSpeed * glm::vec3(0, 1, 0);
             GL_CHECK(glUseProgram(tracer_program));
-            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
+            GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1,
+                                  glm::value_ptr(camera_position)));
         }
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE))
@@ -396,14 +415,18 @@ int main(int argc, char **argv)
         if (elapsed.count() >= 1.0f)
         {
             fps = frame_count / elapsed.count();
+            fps /= 2.0f;
             spdlog::info("FPS: {}", static_cast<unsigned>(fps));
             last_fps_time = current_time;
             frame_count = 0;
 
-            spdlog::debug("pos   {} {} {} {}", camera_position.x, camera_position.y, camera_position.z, glm::length(camera_position));
-            spdlog::debug("dir   {} {} {} {}", camera_direction.x, camera_direction.y, camera_direction.z, glm::length(camera_direction));
+            spdlog::debug("pos   {} {} {} {}", camera_position.x, camera_position.y, camera_position.z,
+                          glm::length(camera_position));
+            spdlog::debug("dir   {} {} {} {}", camera_direction.x, camera_direction.y, camera_direction.z,
+                          glm::length(camera_direction));
             spdlog::debug("upv   {} {} {} {}", camera_up.x, camera_up.y, camera_up.z, glm::length(camera_up));
-            spdlog::debug("rig   {} {} {} {}", camera_right.x, camera_right.y, camera_right.z, glm::length(camera_right));
+            spdlog::debug("rig   {} {} {} {}", camera_right.x, camera_right.y, camera_right.z,
+                          glm::length(camera_right));
         }
     }
 

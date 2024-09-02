@@ -9,82 +9,88 @@ uniform vec3 camera_direction;
 uniform vec3 camera_up;
 uniform vec3 camera_right;
 
-vec4 rcast(vec3 ray_origin, vec3 ray_direction)
-{
-    ivec3 pos = ivec3(floor(ray_origin)); 
-    ivec3 step = ivec3(sign(ray_direction));
-    
-    vec3 tDelta = abs(vec3(1.0) / ray_direction); 
-    vec3 tMax = vec3(0); 
 
-    tMax.x = (step.x > 0 ? (pos.x + 1 - ray_origin.x) : (ray_origin.x - pos.x)) * tDelta.x;
-    tMax.y = (step.y > 0 ? (pos.y + 1 - ray_origin.y) : (ray_origin.y - pos.y)) * tDelta.y;
-    tMax.z = (step.z > 0 ? (pos.z + 1 - ray_origin.z) : (ray_origin.z - pos.z)) * tDelta.z;
-
-    vec4 color = vec4(0);
+vec4 rcast(vec3 ray_origin, vec3 ray_direction) {
     ivec3 voxel_grid_size = imageSize(voxgrid);
 
-    while (true) {
-        if (pos.x >= 0 && pos.x < voxel_grid_size.x && pos.y >= 0 && pos.y < voxel_grid_size.y && pos.z >= 0 && pos.z < voxel_grid_size.z) {
-            int index = pos.x + voxel_grid_size.y * (pos.y + voxel_grid_size.z * pos.z);
-            vec4 voxel_color = vec4(imageLoad(voxgrid, pos));
+    vec3 entry_point = ray_origin;
+    vec3 inv_dir = 1.0 / ray_direction;
+    
+    {
+        vec3 t1 = -ray_origin * inv_dir;
+        vec3 t2 = (vec3(voxel_grid_size) - ray_origin) * inv_dir;
 
-            if (voxel_color.a > 0.0) {
-                color.rgb = mix(color.rgb, voxel_color.rgb, voxel_color.a);
-                color.a = max(color.a, voxel_color.a);
-            }
+        vec3 t_min = min(t1, t2);
+        vec3 t_max = max(t1, t2);
 
-            if (color.a >= 1.0) {
-                break;
-            }
+        float t_entry = max(max(t_min.x, t_min.y), t_min.z);
+        float t_exit = min(min(t_max.x, t_max.y), t_max.z);
+
+        // If the ray doesn't intersect the box or exits before entering, return early
+        if (t_entry > t_exit || t_exit < 0.0) {
+            return vec4(0.0);  // No intersection
         }
-       
+
+        // Update the entry point if the ray starts outside the grid
+        if (t_entry > 0.0) {
+            entry_point = ray_origin + ray_direction * t_entry;
+        }
+    }
+    
+    ivec3 pos = ivec3(floor(entry_point)); 
+    ivec3 step = ivec3(sign(ray_direction));
+    
+    vec3 tDelta = abs(inv_dir);  // Distance to cross one voxel
+    vec3 tMax;
+
+    // Calculate initial tMax based on entry_point
+    tMax.x = (step.x > 0 ? (float(pos.x) + 1.0 - entry_point.x) : (entry_point.x - float(pos.x))) * tDelta.x;
+    tMax.y = (step.y > 0 ? (float(pos.y) + 1.0 - entry_point.y) : (entry_point.y - float(pos.y))) * tDelta.y;
+    tMax.z = (step.z > 0 ? (float(pos.z) + 1.0 - entry_point.z) : (entry_point.z - float(pos.z))) * tDelta.z;
+
+    vec4 color = vec4(0.0);
+
+    // Traverse the voxel grid
+    do {
+        // Sample voxel color
+        vec4 voxel_color = vec4(imageLoad(voxgrid, pos));
+
+        // Accumulate color based on voxel transparency
+        if (voxel_color.a > 0.0) {
+            color.rgb = mix(color.rgb, voxel_color.rgb, voxel_color.a * (1.0 - color.a));
+            color.a += voxel_color.a * (1.0 - color.a);
+        }
+
+        // Break if fully opaque
+        if (color.a >= 1.0) {
+            break;
+        }
+
+        // Determine next voxel to step into
         if (tMax.x < tMax.y) {
             if (tMax.x < tMax.z) {
                 pos.x += step.x;
                 tMax.x += tDelta.x;
-
-                if (step.x > 0 && pos.x >= voxel_grid_size.x) {
-                    return color;
-                } else if (step.x < 0 && pos.x < 0) {
-                    return color;
-                }
             } else {
                 pos.z += step.z;
                 tMax.z += tDelta.z;
-
-                if (step.z > 0 && pos.z >= voxel_grid_size.z) {
-                    return color;
-                } else if (step.z < 0 && pos.z < 0) {
-                    return color;
-                }
             }
         } else {
             if (tMax.y < tMax.z) {
                 pos.y += step.y;
                 tMax.y += tDelta.y;
-
-                if (step.y > 0 && pos.y >= voxel_grid_size.y) {
-                    return color;
-                } else if (step.y < 0 && pos.y < 0) {
-                    return color;
-                }
             } else {
                 pos.z += step.z;
                 tMax.z += tDelta.z;
-
-                if (step.z > 0 && pos.z >= voxel_grid_size.z) {
-                    return color;
-                } else if (step.z < 0 && pos.z < 0) {
-                    return color;
-                }
             }
         }
-    }
+
+    } while (pos.x >= 0 && pos.x < voxel_grid_size.x &&
+             pos.y >= 0 && pos.y < voxel_grid_size.y &&
+             pos.z >= 0 && pos.z < voxel_grid_size.z);
     
     return color;
 }
-
 void main()
 {
     ivec2 pixel_coordinates = ivec2(gl_GlobalInvocationID.xy);
