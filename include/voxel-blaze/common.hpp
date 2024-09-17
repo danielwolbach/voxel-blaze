@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cinttypes>
-#include <fmt/core.h>
+#include <random>
 #include <fstream>
 #include <functional>
 #include <glad/glad.h>
@@ -23,6 +23,17 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#define GL_CHECK(call)                              \
+    do                                              \
+    {                                               \
+        call;                                       \
+        GLenum err;                                 \
+        while ((err = glGetError()) != GL_NO_ERROR) \
+        {                                           \
+            spdlog::error("OpenGL error  {}", err); \
+        }                                           \
+    } while (0)
 
 class Wrapper
 {

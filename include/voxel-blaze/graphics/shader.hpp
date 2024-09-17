@@ -3,7 +3,6 @@
 #include <voxel-blaze/common.hpp>
 #include <voxel-blaze/graphics/model.hpp>
 
-
 class Shader : Wrapper
 {
   public:
@@ -13,7 +12,7 @@ class Shader : Wrapper
     void upload_transform(const std::string &location, const float *data) const;
 
   private:
-    friend class Renderer;
+    friend class Rasterizer;
     unsigned handle = 0;
     unsigned compile(const std::string &source, const unsigned type) const;
 };

@@ -29,7 +29,6 @@ Window::Window(const unsigned width, const unsigned height)
     }
 
     glViewport(0, 0, width, height);
-    glEnable(GL_DEPTH_TEST);
 }
 
 Window::~Window()

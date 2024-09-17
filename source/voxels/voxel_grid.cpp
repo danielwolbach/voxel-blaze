@@ -94,6 +94,46 @@ unsigned VoxelGrid::fill_perlin_noise(const Voxel &voxel, float frequency)
     return counter;
 }
 
+unsigned VoxelGrid::get_size_x() const
+{
+    return size_x;
+}
+unsigned VoxelGrid::get_size_y() const
+{
+    return size_y;
+}
+unsigned VoxelGrid::get_size_z() const
+{
+    return size_z;
+}
+
+std::vector<float> VoxelGrid::raw_values() const
+{
+    std::vector<float> raw(size_x * size_y * size_z * 4, 0.0f); // 0.0f changed to 1.0f
+
+    for (unsigned z = 0; z < size_z; z += 1)
+    {
+        for (unsigned y = 0; y < size_y; y += 1)
+        {
+            for (unsigned x = 0; x < size_x; x += 1)
+            {
+                const auto index = (x + size_x * (y + size_y * z)) * 4;
+                const auto voxel = get_voxel(x, y, z);
+
+                if (voxel.has_value())
+                {
+                    raw[index + 0] = (voxel->r);
+                    raw[index + 1] = (voxel->g);
+                    raw[index + 2] = (voxel->b);
+                    raw[index + 3] = (1.0f);
+                }
+            }
+        }
+    }
+
+    return raw;
+}
+
 Mesh VoxelGrid::meshify_direct() const
 {
     std::vector<Vertex> vertices;

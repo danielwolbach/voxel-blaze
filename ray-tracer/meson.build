@@ -8,7 +8,7 @@ dependencies = [
 ]
 
 source_files = [
-    'main.cpp'
+    'main.cpp', 'vox_parser.cpp'
 ]
 
 executable('voxel-ray-tracer', source_files, dependencies: dependencies, install: true)

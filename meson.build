@@ -4,22 +4,22 @@ dependencies = [
   dependency('glfw3'),
   dependency('spdlog'),
   dependency('glm'),
-  dependency('fmt'),
 ]
 
 source_files = [
-  'source/main.cpp',
-  'source/consts.cpp',
-  'source/graphics/window.cpp',
-  'source/graphics/shader.cpp',
-  'source/graphics/model.cpp',
-  'source/graphics/renderer.cpp',
-  'source/graphics/vertex.cpp',
-  'source/graphics/camera.cpp',
-  'source/voxels/voxel_grid.cpp',
-  'source/voxels/array_voxel_grid.cpp',
-  'source/parsers/vox_parser.cpp',
   'lib/glad.c',
+  'source/consts.cpp',
+  'source/graphics/camera.cpp',
+  'source/graphics/model.cpp',
+  'source/graphics/rasterizer.cpp',
+  'source/graphics/ray_tracer.cpp',
+  'source/graphics/shader.cpp',
+  'source/graphics/vertex.cpp',
+  'source/graphics/window.cpp',
+  'source/main.cpp',
+  'source/parsers/vox_parser.cpp',
+  'source/voxels/array_voxel_grid.cpp',
+  'source/voxels/voxel_grid.cpp',
 ]
 
 include_directories = include_directories('include')

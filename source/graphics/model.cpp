@@ -38,20 +38,3 @@ Model::~Model()
     glDeleteVertexArrays(1, &vertex_array);
     glDeleteBuffers(1, &vertex_buffer);
 }
-
-void Model::translate(const glm::vec3 translations)
-{
-    transform = glm::translate(transform, translations);
-}
-
-void Model::rotate(const glm::vec3 angles)
-{
-    transform = glm::rotate(transform, angles.x, glm::vec3(1.0, 0.0, 0.0));
-    transform = glm::rotate(transform, angles.y, glm::vec3(0.0, 1.0, 0.0));
-    transform = glm::rotate(transform, angles.z, glm::vec3(0.0, 0.0, 1.0));
-}
-
-glm::mat4 Model::get_tranform() const
-{
-    return transform;
-}

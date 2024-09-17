@@ -9,10 +9,8 @@ uniform vec3 camera_direction;
 uniform vec3 camera_up;
 uniform vec3 camera_right;
 
-
 vec4 rcast(vec3 ray_origin, vec3 ray_direction) {
     ivec3 voxel_grid_size = imageSize(voxel_grid);
-
     vec3 entry_point = ray_origin;
     vec3 inv_dir = 1.0 / ray_direction;
     
@@ -37,7 +35,7 @@ vec4 rcast(vec3 ray_origin, vec3 ray_direction) {
         }
     }
     
-    ivec3 pos = ivec3(floor(entry_point)); 
+    ivec3 pos = ivec3(floor(entry_point) ); 
     ivec3 step = ivec3(sign(ray_direction));
     
     vec3 tDelta = abs(inv_dir);  // Distance to cross one voxel

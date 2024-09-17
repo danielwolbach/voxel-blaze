@@ -15,6 +15,10 @@ class VoxelGrid
     unsigned fill_ellipsoid(const Voxel &voxel);
     unsigned fill_perlin_noise(const Voxel &voxel, float frequency);
     unsigned max_size() const;
+    unsigned get_size_x() const;
+    unsigned get_size_y() const;
+    unsigned get_size_z() const;
+    std::vector<float> raw_values() const;
     Mesh meshify_direct() const;
     Mesh meshify_culled() const;
     Mesh meshify_greedy() const;

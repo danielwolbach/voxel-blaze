@@ -12,6 +12,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include "vox_parser.hpp"
 
 #define GL_CHECK(call)                              \
     do                                              \
@@ -25,7 +26,7 @@
     } while (0)
 
 const auto SCREEN_WIDTH = 1280U;
-const auto SCREEN_HEIGHT = 720U;
+const auto SCREEN_HEIGHT = 1280U;
 const auto ENABLE_VSYNC = false;
 const auto OPENGL_MAJOR_VERSION = 4U;
 const auto OPENGL_MINOR_VERSION = 6U;
@@ -93,8 +94,10 @@ auto read_file(const std::string &file_path)
     return content_stream.str();
 }
 
-int main(int argc, char **argv)
+
+int main2(int argc, char **argv)
 {
+    // spdlog::set_level(spdlog::level::trace);
     std::string mode = "opaque";
 
     // CLI settings.
@@ -202,64 +205,70 @@ int main(int argc, char **argv)
     auto fps = 0.0f;
 
     // Configure camera.
-    auto camera_position = glm::vec3(0.0f, 0.0f, 0.0f);
+    auto camera_position = glm::vec3(0.0f, 0.0f, 150.0f);
     auto camera_direction = glm::vec3(0.0f, 0.0f, -1.0f);
     auto camera_right = glm::vec3(1.0f, 0.0f, 0.0f);
     auto camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
     GL_CHECK(glUseProgram(tracer_program));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
-    GL_CHECK(
-        glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
+    GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
 
     // Fill a voxel grid.
-    std::vector<float> voxel_grid;
-    voxel_grid.reserve(voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4);
-    std::random_device rd;
-    std::default_random_engine generator(rd());
-    std::uniform_real_distribution<GLfloat> distribution(0.0f, 1.0f);
-    if (mode == "opaque")
-    {
-        for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
-        {
-            if (distribution(generator) > 0.9f)
-            {
-                voxel_grid.push_back(distribution(generator));
-                voxel_grid.push_back(distribution(generator));
-                voxel_grid.push_back(distribution(generator));
-                voxel_grid.push_back(1.0f);
-            }
-            else
-            {
-                voxel_grid.push_back(0.0f);
-                voxel_grid.push_back(0.0f);
-                voxel_grid.push_back(0.0f);
-                voxel_grid.push_back(0.0f);
-            }
-        }
-    }
-    else if (mode == "transparent")
-    {
-        for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
-        {
-            if (distribution(generator) > 0.9f)
-            {
-                voxel_grid.push_back(distribution(generator));
-                voxel_grid.push_back(distribution(generator));
-                voxel_grid.push_back(distribution(generator));
-                voxel_grid.push_back(distribution(generator));
-            }
-            else
-            {
-                voxel_grid.push_back(0.0f);
-                voxel_grid.push_back(0.0f);
-                voxel_grid.push_back(0.0f);
-                voxel_grid.push_back(0.0f);
-            }
-        }
-    }
+    // std::vector<float> voxel_grid;
+    // voxel_grid.reserve(voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4);
+    // std::random_device rd;
+    // std::default_random_engine generator(rd());
+    // std::uniform_real_distribution<GLfloat> distribution(0.0f, 1.0f);
+    // if (mode == "opaque")
+    // {
+    //     for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
+    //     {
+    //         if (distribution(generator) > 0.9f)
+    //         {
+    //             voxel_grid.push_back(distribution(generator));
+    //             voxel_grid.push_back(distribution(generator));
+    //             voxel_grid.push_back(distribution(generator));
+    //             voxel_grid.push_back(1.0f);
+    //         }
+    //         else
+    //         {
+    //             voxel_grid.push_back(0.0f);
+    //             voxel_grid.push_back(0.0f);
+    //             voxel_grid.push_back(0.0f);
+    //             voxel_grid.push_back(0.0f);
+    //         }
+    //     }
+    // }
+    // else if (mode == "transparent")
+    // {
+    //     for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
+    //     {
+    //         if (distribution(generator) > 0.9f)
+    //         {
+    //             voxel_grid.push_back(distribution(generator));
+    //             voxel_grid.push_back(distribution(generator));
+    //             voxel_grid.push_back(distribution(generator));
+    //             voxel_grid.push_back(distribution(generator));
+    //         }
+    //         else
+    //         {
+    //             voxel_grid.push_back(0.0f);
+    //             voxel_grid.push_back(0.0f);
+    //             voxel_grid.push_back(0.0f);
+    //             voxel_grid.push_back(0.0f);
+    //         }
+    //     }
+    // }
+    
+    VoxParser parser("monu.vox");
+    auto voxel_grid = parser.get_voxel_grid();
+    voxel_grid_size.x = voxel_grid.size_x;
+    voxel_grid_size.y = voxel_grid.size_y;
+    voxel_grid_size.z = voxel_grid.size_z;
 
+    // Create 3D texture
     GLuint textureID;
     GL_CHECK(glGenTextures(1, &textureID));
     GL_CHECK(glBindTexture(GL_TEXTURE_3D, textureID));
@@ -269,11 +278,11 @@ int main(int argc, char **argv)
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT));
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT));
     GL_CHECK(glTextureStorage3D(textureID, 1, GL_RGBA32F, voxel_grid_size.x, voxel_grid_size.y, voxel_grid_size.z));
-    GL_CHECK(glBindImageTexture(1, textureID, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F));
+    GL_CHECK(glBindImageTexture(1, textureID, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F));
 
     GL_CHECK(glBindTexture(GL_TEXTURE_3D, textureID));
     GL_CHECK(glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, voxel_grid_size.x, voxel_grid_size.y, voxel_grid_size.z,
-                             GL_RGBA, GL_FLOAT, voxel_grid.data()));
+                             GL_RGBA, GL_FLOAT, voxel_grid.values.data()));
 
     std::chrono::high_resolution_clock::time_point previousTime = std::chrono::high_resolution_clock::now();
 
@@ -437,4 +446,14 @@ int main(int argc, char **argv)
     glfwTerminate();
 
     return EXIT_SUCCESS;
+}
+
+
+int main(int argc, char **argv) 
+{
+    try {
+        main2(argc, argv);
+    } catch (std::exception &e) {
+        spdlog::error("{}", e.what());
+    }
 }
