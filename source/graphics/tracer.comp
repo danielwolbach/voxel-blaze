@@ -100,10 +100,9 @@ void main()
     float aspect_ratio = float(screen_size.x) / float(screen_size.y);
     float fov = 60.0;
     float tan_half_fov = tan(radians(fov) / 2.0);
-    
     vec3 ray_origin = camera_position;
     vec3 ray_direction = normalize(
-        (coordinates.x * camera_right * aspect_ratio * tan_half_fov +
+        (-coordinates.x * camera_right * aspect_ratio * tan_half_fov +
         coordinates.y * camera_up * tan_half_fov +
         camera_direction)
     );

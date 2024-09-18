@@ -46,7 +46,7 @@ std::unique_ptr<VoxelGrid> VoxParser::get_voxel_grid() const
         spdlog::trace("Found voxel entry {} {} {} {}", voxel_entry.x, voxel_entry.y, voxel_entry.z, voxel_entry.i);
         const auto color_entry = colors[voxel_entry.i];
         voxel_grid->set_voxel(voxel_entry.x, voxel_entry.y, voxel_entry.z,
-                             Voxel{color_entry.r / 255.0f, color_entry.g / 255.0f, color_entry.b / 255.0f});
+                             Voxel{color_entry.r / 255.0f, color_entry.g / 255.0f, color_entry.b / 255.0f, color_entry.a / 255.0f});
     }
 
     return voxel_grid;

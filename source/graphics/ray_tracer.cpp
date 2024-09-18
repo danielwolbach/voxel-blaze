@@ -114,23 +114,11 @@ RayTracer::RayTracer(const VoxelGrid &voxel_grid)
     GL_CHECK(glTextureStorage2D(screen_texture, 1, GL_RGBA32F, 1280, 720)); // fixme
     GL_CHECK(glBindImageTexture(0, screen_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
 
-    //Fill a voxel grid.
+    // Get the voxel grid data.
     glm::vec3 voxel_grid_size(voxel_grid.get_size_x(), voxel_grid.get_size_y(), voxel_grid.get_size_z());
-
     const auto data = voxel_grid.raw_values();
 
-    // std::vector<float> data;
-    // data.reserve(voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4);
-
-    // for (auto i = 0; i < voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4; i += 4)
-    // {
-    //     data.push_back(0.5f);
-    //     data.push_back(0.5f);
-    //     data.push_back(0.5f);
-    //     data.push_back(1.0f);
-    // }
-
-    // Create 3D texture
+    // Create 3D texture.
     voxel_grid_texture = 0U;
     assert(data.size() == voxel_grid_size.x * voxel_grid_size.y * voxel_grid_size.z * 4);
     GL_CHECK(glGenTextures(1, &voxel_grid_texture));
@@ -147,34 +135,37 @@ RayTracer::RayTracer(const VoxelGrid &voxel_grid)
                              GL_RGBA, GL_FLOAT, data.data()));
 }
 
+RayTracer::~RayTracer()
+{
+    glUseProgram(0);
+    glDeleteProgram(tracer_program);
+    glDeleteProgram(screen_program);
+    glDeleteTextures(1, &screen_program);
+    glDeleteTextures(1, &voxel_grid_texture);
+    glDeleteVertexArrays(1, &vertex_array);
+    glDeleteBuffers(1, &vertex_buffer);
+    glDeleteBuffers(1, &element_buffer);
+}
+
 void RayTracer::render(const OrbitCamera &camera) const
 {
     GL_CHECK(glUseProgram(tracer_program));
 
-    const auto camera_position = camera.get_position();
-    const auto camera_direction = glm::normalize(camera.get_direction());
-    const auto camera_right = glm::normalize(glm::cross(camera.get_up(), camera_direction));
-    const auto camera_up = glm::normalize(glm::cross(camera_right, camera_direction));
-
+    // Upload camera data.
+    auto camera_position = camera.get_position();
+    auto camera_direction = glm::normalize(camera.get_direction());
+    auto camera_right = glm::normalize(camera.get_right());
+    auto camera_up = glm::normalize(camera.get_up());
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
-    
 
-    // auto camera_position = glm::vec3(0.0f, 0.0f, 200.0f);
-    // auto camera_direction = glm::vec3(0.0f, 0.0f, -1.0f);
-    // auto camera_right = glm::vec3(1.0f, 0.0f, 0.0f);
-    // auto camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
-    // GL_CHECK(glUseProgram(tracer_program));
-    // GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
-    // GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
-    // GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
-    // GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
-
+    // Run compute shader.
     GL_CHECK(glDispatchCompute(ceil(1280 / 8), ceil(720 / 4), 1));
     GL_CHECK(glMemoryBarrier(GL_ALL_BARRIER_BITS));
 
+    // Render screen-filling quad.
     GL_CHECK(glUseProgram(screen_program));
     GL_CHECK(glBindTextureUnit(0, screen_texture));
     GL_CHECK(glBindVertexArray(vertex_array));

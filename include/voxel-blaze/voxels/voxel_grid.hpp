@@ -13,7 +13,7 @@ class VoxelGrid
     virtual void set_voxel(const unsigned x, const unsigned y, const unsigned z, const std::optional<Voxel> &voxel) = 0;
     unsigned fill_cuboid(const Voxel &voxel);
     unsigned fill_ellipsoid(const Voxel &voxel);
-    unsigned fill_perlin_noise(const Voxel &voxel, float frequency);
+    unsigned fill_perlin_noise(float frequency);
     unsigned max_size() const;
     unsigned get_size_x() const;
     unsigned get_size_y() const;

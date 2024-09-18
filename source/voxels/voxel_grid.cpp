@@ -66,9 +66,25 @@ unsigned VoxelGrid::fill_ellipsoid(const Voxel &voxel)
     return counter;
 }
 
-unsigned VoxelGrid::fill_perlin_noise(const Voxel &voxel, float frequency)
+Voxel interpolate_voxel(const Voxel& voxel1, const Voxel& voxel2, float t)
+{
+    Voxel result;
+    result.r = voxel1.r * (1.0f - t) + voxel2.r * t;
+    result.g = voxel1.g * (1.0f - t) + voxel2.g * t;
+    result.b = voxel1.b * (1.0f - t) + voxel2.b * t;
+    result.a = voxel1.a * (1.0f - t) + voxel2.a * t;
+    return result;
+}
+
+
+unsigned VoxelGrid::fill_perlin_noise(float frequency)
 {
     unsigned counter = 0;
+    unsigned total_voxels = size_x * size_y * size_z;
+
+    // Define two Voxel colors for interpolation
+    Voxel voxel1 = {0.8f, 0.0f, 0.0f, 1.0f}; // Red
+    Voxel voxel2 = {0.0f, 0.0f, 0.8f, 1.0f}; // Blue
 
     for (unsigned x = 0; x < size_x; x++)
     {
@@ -78,11 +94,16 @@ unsigned VoxelGrid::fill_perlin_noise(const Voxel &voxel, float frequency)
             {
                 glm::vec3 pos = glm::vec3(x, y, z) * frequency;
 
+                // Generate Perlin noise value
                 float noise_value = glm::perlin(pos);
+
+                // Map the noise value to a Voxel color using interpolation
+                float t = (noise_value + 1.0f) / 2.0f;
+                Voxel voxel_color = interpolate_voxel(voxel1, voxel2, t);
 
                 if (noise_value > 0.0f)
                 {
-                    set_voxel(x, y, z, voxel);
+                    set_voxel(x, y, z, voxel_color);
                     counter += 1;
                 }
             }
@@ -93,6 +114,8 @@ unsigned VoxelGrid::fill_perlin_noise(const Voxel &voxel, float frequency)
 
     return counter;
 }
+
+
 
 unsigned VoxelGrid::get_size_x() const
 {
@@ -125,7 +148,7 @@ std::vector<float> VoxelGrid::raw_values() const
                     raw[index + 0] = (voxel->r);
                     raw[index + 1] = (voxel->g);
                     raw[index + 2] = (voxel->b);
-                    raw[index + 3] = (1.0f);
+                    raw[index + 3] = (voxel->a);
                 }
             }
         }
@@ -151,9 +174,9 @@ Mesh VoxelGrid::meshify_direct() const
                 if (voxel_optional.has_value())
                 {
                     const auto voxel = voxel_optional.value();
-                    const auto base = Vertex{(float)x - (float)size_x / 2.0f,
-                                             (float)y - (float)size_y / 2.0f,
-                                             (float)z - (float)size_z / 2.0f,
+                    const auto base = Vertex{(float)x,
+                                             (float)y,
+                                             (float)z,
                                              voxel.r,
                                              voxel.g,
                                              voxel.b};
@@ -205,9 +228,9 @@ Mesh VoxelGrid::meshify_culled() const
                 if (voxel_optional.has_value())
                 {
                     const auto voxel = voxel_optional.value();
-                    const auto base = Vertex{(float)x - (float)size_x / 2.0f,
-                                             (float)y - (float)size_y / 2.0f,
-                                             (float)z - (float)size_z / 2.0f,
+                    const auto base = Vertex{(float)x,
+                                             (float)y,
+                                             (float)z,
                                              voxel.r,
                                              voxel.g,
                                              voxel.b};
@@ -413,9 +436,9 @@ Mesh VoxelGrid::meshify_greedy() const
 
                         float color[3] = {mask_optional->r, mask_optional->g, mask_optional->b};
 
-                        float start_x = -(float)size_x / 2.0f;
-                        float start_y = -(float)size_y / 2.0f;
-                        float start_z = -(float)size_z / 2.0f;
+                        float start_x = 0.0f;
+                        float start_y = 0.0f;
+                        float start_z = 0.0f;
 
                         const auto face_vertices = std::vector<Vertex>(
                             {Vertex{start_x + (float)x[0], start_y + (float)x[1], start_z + (float)x[2], color[0],

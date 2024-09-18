@@ -11,10 +11,10 @@
 int main()
 {
     const auto window = Window(1280, 720);
-    const auto parser = VoxParser("resources/monu.vox");
+    const auto parser = VoxParser("resources/scene_orgy.vox");
     const auto voxel_grid = parser.get_voxel_grid();
     const auto renderer = RayTracer(*voxel_grid);
-    auto camera = OrbitCamera(200.0f);
+    auto camera = OrbitCamera(voxel_grid->max_size() * 1.5, glm::vec3(voxel_grid->get_size_x() / 2.0, voxel_grid->get_size_y() / 2.0, voxel_grid->get_size_z() / 2.0));
 
     // Configure timing variables.
     auto last_fps_time = std::chrono::high_resolution_clock::now();
