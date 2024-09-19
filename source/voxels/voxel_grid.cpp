@@ -66,7 +66,7 @@ unsigned VoxelGrid::fill_ellipsoid(const Voxel &voxel)
     return counter;
 }
 
-Voxel interpolate_voxel(const Voxel& voxel1, const Voxel& voxel2, float t)
+Voxel interpolate_voxel(const Voxel &voxel1, const Voxel &voxel2, float t)
 {
     Voxel result;
     result.r = voxel1.r * (1.0f - t) + voxel2.r * t;
@@ -75,7 +75,6 @@ Voxel interpolate_voxel(const Voxel& voxel1, const Voxel& voxel2, float t)
     result.a = voxel1.a * (1.0f - t) + voxel2.a * t;
     return result;
 }
-
 
 unsigned VoxelGrid::fill_perlin_noise(float frequency)
 {
@@ -114,8 +113,6 @@ unsigned VoxelGrid::fill_perlin_noise(float frequency)
 
     return counter;
 }
-
-
 
 unsigned VoxelGrid::get_size_x() const
 {
@@ -174,12 +171,7 @@ Mesh VoxelGrid::meshify_direct() const
                 if (voxel_optional.has_value())
                 {
                     const auto voxel = voxel_optional.value();
-                    const auto base = Vertex{(float)x,
-                                             (float)y,
-                                             (float)z,
-                                             voxel.r,
-                                             voxel.g,
-                                             voxel.b};
+                    const auto base = Vertex{(float)x, (float)y, (float)z, voxel.r, voxel.g, voxel.b};
 
                     const auto single_vertices = Vertex::generate_cube_vertices(base);
                     const auto single_indices = Vertex::generate_cube_indices();
@@ -228,12 +220,7 @@ Mesh VoxelGrid::meshify_culled() const
                 if (voxel_optional.has_value())
                 {
                     const auto voxel = voxel_optional.value();
-                    const auto base = Vertex{(float)x,
-                                             (float)y,
-                                             (float)z,
-                                             voxel.r,
-                                             voxel.g,
-                                             voxel.b};
+                    const auto base = Vertex{(float)x, (float)y, (float)z, voxel.r, voxel.g, voxel.b};
 
                     const auto single_vertices = Vertex::generate_cube_vertices(base);
 

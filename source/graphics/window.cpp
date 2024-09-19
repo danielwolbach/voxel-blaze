@@ -1,5 +1,11 @@
 #include <voxel-blaze/graphics/window.hpp>
 
+void GLAPIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                              const GLchar *message, const void *userParam)
+{
+    std::cerr << "OpenGL Debug Message: " << message << std::endl;
+}
+
 Window::Window(const unsigned width, const unsigned height)
 {
     if (!glfwInit())
@@ -29,6 +35,10 @@ Window::Window(const unsigned width, const unsigned height)
     }
 
     glViewport(0, 0, width, height);
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(debugCallback, nullptr);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
 }
 
 Window::~Window()

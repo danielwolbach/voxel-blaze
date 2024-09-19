@@ -32,6 +32,7 @@
         while ((err = glGetError()) != GL_NO_ERROR) \
         {                                           \
             spdlog::error("OpenGL error  {}", err); \
+            exit(1);                                \
         }                                           \
     } while (0)
 

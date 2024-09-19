@@ -10,11 +10,15 @@
 
 int main()
 {
+    // const auto voxel_grid = std::make_unique<ArrayVoxelGrid>(128, 128, 128);
+    // voxel_grid->fill_perlin_noise(0.05);
     const auto window = Window(1280, 720);
-    const auto parser = VoxParser("resources/scene_orgy.vox");
+    const auto parser = VoxParser("resources/monu.vox");
     const auto voxel_grid = parser.get_voxel_grid();
     const auto renderer = RayTracer(*voxel_grid);
-    auto camera = OrbitCamera(voxel_grid->max_size() * 1.5, glm::vec3(voxel_grid->get_size_x() / 2.0, voxel_grid->get_size_y() / 2.0, voxel_grid->get_size_z() / 2.0));
+    auto camera = OrbitCamera(
+        voxel_grid->max_size() * 1.5,
+        glm::vec3(voxel_grid->get_size_x() / 2.0, voxel_grid->get_size_y() / 2.0, voxel_grid->get_size_z() / 2.0));
 
     // Configure timing variables.
     auto last_fps_time = std::chrono::high_resolution_clock::now();
@@ -36,19 +40,27 @@ int main()
         // Control the orbit camera.
         if (window.key_down(GLFW_KEY_UP))
         {
-            camera.move(-delta, 0.0f);
+            camera.move(0.0f, -delta, 0.0f);
         }
         if (window.key_down(GLFW_KEY_DOWN))
         {
-            camera.move(delta, 0.0f);
+            camera.move(0.0f, delta, 0.0f);
         }
         if (window.key_down(GLFW_KEY_LEFT))
         {
-            camera.move(0.0f, delta);
+            camera.move(0.0f, 0.0f, delta);
         }
         if (window.key_down(GLFW_KEY_RIGHT))
         {
-            camera.move(0.0f, -delta);
+            camera.move(0.0f, 0.0f, -delta);
+        }
+        if (window.key_down(GLFW_KEY_O))
+        {
+            camera.move(-delta * 10.0f, 0.0f, 0.0f);
+        }
+        if (window.key_down(GLFW_KEY_P))
+        {
+            camera.move(delta * 10.0f, 0.0f, 0.0f);
         }
 
         // Count frames per second.

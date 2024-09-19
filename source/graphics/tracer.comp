@@ -4,67 +4,71 @@ layout(local_size_x = 8, local_size_y = 4, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image2D screen;
 layout(rgba32f, binding = 1) uniform image3D voxel_grid;
 
+ivec3 voxel_grid_size = imageSize(voxel_grid);
+
 uniform vec3 camera_position;
 uniform vec3 camera_direction;
 uniform vec3 camera_up;
 uniform vec3 camera_right;
 
-vec4 rcast(vec3 ray_origin, vec3 ray_direction) {
-    ivec3 voxel_grid_size = imageSize(voxel_grid);
+bool aabb_intersect(vec3 ray_origin, vec3 ray_direction, vec3 box_min, vec3 box_max, out vec3 hit_point)
+{
     vec3 entry_point = ray_origin;
-    vec3 inv_dir = 1.0 / ray_direction;
-    
+
+    vec3 t1 = (box_min - ray_origin) / ray_direction;
+    vec3 t2 = (box_max - ray_origin) / ray_direction;
+
+    vec3 t_min = min(t1, t2);
+    vec3 t_max = max(t1, t2);
+
+    float t_entry = max(max(t_min.x, t_min.y), t_min.z);
+    float t_exit = min(min(t_max.x, t_max.y), t_max.z);
+
+    if (t_entry > t_exit || t_exit < 0.0) {
+        return false;
+    }
+
+    if (t_entry > 0.0) {
+        entry_point = ray_origin + ray_direction * t_entry;
+    }
+
+    hit_point = entry_point;
+    return true;
+}
+
+vec4 cast_ray(vec3 ray_origin, vec3 ray_direction, out vec3 hit_point) {
+
+    vec3 entry_point;
+
+    if (!aabb_intersect(ray_origin, ray_direction, vec3(0), voxel_grid_size, entry_point))
     {
-        vec3 t1 = -ray_origin * inv_dir;
-        vec3 t2 = (vec3(voxel_grid_size) - ray_origin) * inv_dir;
-
-        vec3 t_min = min(t1, t2);
-        vec3 t_max = max(t1, t2);
-
-        float t_entry = max(max(t_min.x, t_min.y), t_min.z);
-        float t_exit = min(min(t_max.x, t_max.y), t_max.z);
-
-        // If the ray doesn't intersect the box or exits before entering, return early
-        if (t_entry > t_exit || t_exit < 0.0) {
-            return vec4(0.0);  // No intersection
-        }
-
-        // Update the entry point if the ray starts outside the grid
-        if (t_entry > 0.0) {
-            entry_point = ray_origin + ray_direction * t_entry;
-        }
+        return vec4(0.0);
     }
     
-    ivec3 pos = ivec3(floor(entry_point) ); 
-    ivec3 step = ivec3(sign(ray_direction));
+    ivec3 pos = ivec3(floor(entry_point)); 
+    const ivec3 step = ivec3(sign(ray_direction));
     
-    vec3 tDelta = abs(inv_dir);  // Distance to cross one voxel
-    vec3 tMax;
-
-    // Calculate initial tMax based on entry_point
-    tMax.x = (step.x > 0 ? (float(pos.x) + 1.0 - entry_point.x) : (entry_point.x - float(pos.x))) * tDelta.x;
-    tMax.y = (step.y > 0 ? (float(pos.y) + 1.0 - entry_point.y) : (entry_point.y - float(pos.y))) * tDelta.y;
-    tMax.z = (step.z > 0 ? (float(pos.z) + 1.0 - entry_point.z) : (entry_point.z - float(pos.z))) * tDelta.z;
+    const vec3 tDelta = abs(1.0 / ray_direction);  
+    vec3 tMax = vec3(
+        (step.x > 0 ? (float(pos.x) + 1.0 - entry_point.x) : (entry_point.x - float(pos.x))) * tDelta.x,
+        (step.y > 0 ? (float(pos.y) + 1.0 - entry_point.y) : (entry_point.y - float(pos.y))) * tDelta.y,
+        (step.z > 0 ? (float(pos.z) + 1.0 - entry_point.z) : (entry_point.z - float(pos.z))) * tDelta.z
+    );
 
     vec4 color = vec4(0.0);
 
-    // Traverse the voxel grid
     do {
-        // Sample voxel color
         vec4 voxel_color = vec4(imageLoad(voxel_grid, pos));
 
-        // Accumulate color based on voxel transparency
         if (voxel_color.a > 0.0) {
             color.rgb = mix(color.rgb, voxel_color.rgb, voxel_color.a * (1.0 - color.a));
             color.a += voxel_color.a * (1.0 - color.a);
         }
 
-        // Break if fully opaque
         if (color.a >= 1.0) {
             break;
         }
 
-        // Determine next voxel to step into
         if (tMax.x < tMax.y) {
             if (tMax.x < tMax.z) {
                 pos.x += step.x;
@@ -82,13 +86,14 @@ vec4 rcast(vec3 ray_origin, vec3 ray_direction) {
                 tMax.z += tDelta.z;
             }
         }
+    } while (all(greaterThanEqual(pos, ivec3(0))) && all(lessThan(pos, voxel_grid_size)));
 
-    } while (pos.x >= 0 && pos.x < voxel_grid_size.x &&
-             pos.y >= 0 && pos.y < voxel_grid_size.y &&
-             pos.z >= 0 && pos.z < voxel_grid_size.z);
-    
+    hit_point = pos;
+    aabb_intersect(ray_origin, ray_direction, pos, pos + vec3(1), hit_point);
+
     return color;
 }
+
 
 void main()
 {
@@ -107,5 +112,12 @@ void main()
         camera_direction)
     );
 
-    imageStore(screen, pixel_coordinates, rcast(ray_origin, ray_direction));
+
+    vec3 hit_point;
+    vec4 base_color = cast_ray(ray_origin, ray_direction, hit_point);
+    vec3 light_position = vec3(voxel_grid_size.xy * 2, 0); // changing this to camera_position makes it crash
+    vec3 light_direction = normalize(light_position - hit_point);
+    vec4 light_color = cast_ray(hit_point + light_direction, light_direction, hit_point);
+
+    imageStore(screen, pixel_coordinates, base_color - 0.4 * light_color);
 }

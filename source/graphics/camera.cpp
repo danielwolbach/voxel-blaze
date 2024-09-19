@@ -1,12 +1,12 @@
 #include <voxel-blaze/graphics/camera.hpp>
 
-
-OrbitCamera::OrbitCamera(float radius, const glm::vec3 &center) : radius(radius), center(center)
+OrbitCamera::OrbitCamera(float radius, const glm::vec3 &center) : center(center), radius(radius)
 {
 }
 
-void OrbitCamera::move(float theta, float phi)
+void OrbitCamera::move(float radius, float theta, float phi)
 {
+    this->radius += radius;
     this->theta += theta;
     this->phi += phi;
     view_matrix = glm::lookAt(get_position(), center, glm::vec3(0.0f, 1.0f, 0.0f));
