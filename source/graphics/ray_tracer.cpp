@@ -61,7 +61,8 @@ auto read_file(const std::string &file_path)
     return content_stream.str();
 }
 
-RayTracer::RayTracer(const VoxelGrid &voxel_grid)
+RayTracer::RayTracer(const VoxelGrid &voxel_grid, const Window &window)
+    : width(window.get_width()), height(window.get_height())
 {
     // Set up vertex array.
     vertex_array = 0U;
@@ -111,7 +112,7 @@ RayTracer::RayTracer(const VoxelGrid &voxel_grid)
     GL_CHECK(glTextureParameteri(screen_texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     GL_CHECK(glTextureParameteri(screen_texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     GL_CHECK(glTextureParameteri(screen_texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GL_CHECK(glTextureStorage2D(screen_texture, 1, GL_RGBA32F, 1280, 720)); // fixme
+    GL_CHECK(glTextureStorage2D(screen_texture, 1, GL_RGBA32F, width, height));
     GL_CHECK(glBindImageTexture(0, screen_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F));
 
     // Get the voxel grid data.
@@ -128,7 +129,8 @@ RayTracer::RayTracer(const VoxelGrid &voxel_grid)
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT));
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT));
     GL_CHECK(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT));
-    GL_CHECK(glTextureStorage3D(voxel_grid_texture, 1, GL_RGBA32F, voxel_grid_size.x, voxel_grid_size.y, voxel_grid_size.z));
+    GL_CHECK(
+        glTextureStorage3D(voxel_grid_texture, 1, GL_RGBA32F, voxel_grid_size.x, voxel_grid_size.y, voxel_grid_size.z));
     GL_CHECK(glBindImageTexture(1, voxel_grid_texture, 0, GL_TRUE, 0, GL_READ_ONLY, GL_RGBA32F));
     GL_CHECK(glBindTexture(GL_TEXTURE_3D, voxel_grid_texture));
     GL_CHECK(glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, voxel_grid_size.x, voxel_grid_size.y, voxel_grid_size.z,
@@ -157,12 +159,13 @@ void RayTracer::render(const OrbitCamera &camera) const
     auto camera_right = glm::normalize(camera.get_right());
     auto camera_up = glm::normalize(camera.get_up());
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_position"), 1, glm::value_ptr(camera_position)));
-    GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
+    GL_CHECK(
+        glUniform3fv(glGetUniformLocation(tracer_program, "camera_direction"), 1, glm::value_ptr(camera_direction)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_up"), 1, glm::value_ptr(camera_up)));
     GL_CHECK(glUniform3fv(glGetUniformLocation(tracer_program, "camera_right"), 1, glm::value_ptr(camera_right)));
 
     // Run compute shader.
-    GL_CHECK(glDispatchCompute(ceil(1280 / 8), ceil(720 / 4), 1));
+    GL_CHECK(glDispatchCompute(ceil(width / 8), ceil(height / 4), 1));
     GL_CHECK(glMemoryBarrier(GL_ALL_BARRIER_BITS));
 
     // Render screen-filling quad.

@@ -6,19 +6,79 @@
 #include <voxel-blaze/graphics/shader.hpp>
 #include <voxel-blaze/graphics/window.hpp>
 #include <voxel-blaze/parsers/vox_parser.hpp>
+#include <voxel-blaze/test.hpp>
 #include <voxel-blaze/voxels/array_voxel_grid.hpp>
+
+void test_suite()
+{
+    const auto test_duration = 5.0f;
+    const auto tests = {
+        // Magica-Voxel-Modelle
+        // Test::from_vox_path("resources/teapot.vox"),
+        // Test::from_vox_path("resources/monu.vox"),
+        // Test::from_vox_path("resources/scene_coffee.vox"),
+        // Test::from_vox_path("resources/scene_park.vox"),
+
+        // Frequenz 0.05
+        Test::from_perlin_noise(0.05f, 16),
+        Test::from_perlin_noise(0.05f, 32),
+        Test::from_perlin_noise(0.05f, 64),
+        Test::from_perlin_noise(0.05f, 128),
+        Test::from_perlin_noise(0.05f, 256),
+        Test::from_perlin_noise(0.05f, 512),
+
+        // Frequenz 0.1
+        Test::from_perlin_noise(0.1f, 16),
+        Test::from_perlin_noise(0.1f, 32),
+        Test::from_perlin_noise(0.1f, 64),
+        Test::from_perlin_noise(0.1f, 128),
+        Test::from_perlin_noise(0.1f, 256),
+        Test::from_perlin_noise(0.1f, 512),
+    };
+
+    std::vector<Test::Result> results;
+
+    const auto resolutions = {
+        glm::ivec2(1280, 720),
+        glm::ivec2(1920, 1080),
+    };
+
+    for (const auto &resolution : resolutions)
+    {
+        for (const auto &test : tests)
+        {
+            results.push_back(test.run(test_duration, Test::RenderMode::Rasterize, resolution));
+        }
+
+        for (const auto &test : tests)
+        {
+            results.push_back(test.run(test_duration, Test::RenderMode::RayTrace, resolution));
+        }
+    }
+
+    for (const auto &result : results)
+    {
+        std::cout << result.to_string() << "\n";
+    }
+
+    exit(0);
+}
 
 int main()
 {
-    // const auto voxel_grid = std::make_unique<ArrayVoxelGrid>(128, 128, 128);
+    // test_suite();
+
+    // const auto voxel_grid = std::make_unique<ArrayVoxelGrid>(64, 64, 64);
     // voxel_grid->fill_perlin_noise(0.05);
-    const auto window = Window(1280, 720);
-    const auto parser = VoxParser("resources/monu.vox");
+    const auto window = Window(1280, 1280);
+    const auto parser = VoxParser("resources/teapot.vox");
     const auto voxel_grid = parser.get_voxel_grid();
-    const auto renderer = RayTracer(*voxel_grid);
+    const auto renderer = RayTracer(*voxel_grid, window);
     auto camera = OrbitCamera(
-        voxel_grid->max_size() * 1.5,
+        voxel_grid->max_size() * 2,
         glm::vec3(voxel_grid->get_size_x() / 2.0, voxel_grid->get_size_y() / 2.0, voxel_grid->get_size_z() / 2.0));
+
+    camera.set(voxel_grid->max_size() * 2, glm::radians(60.0f), glm::radians(30.0f));
 
     // Configure timing variables.
     auto last_fps_time = std::chrono::high_resolution_clock::now();

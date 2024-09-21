@@ -76,10 +76,32 @@ Voxel interpolate_voxel(const Voxel &voxel1, const Voxel &voxel2, float t)
     return result;
 }
 
+unsigned VoxelGrid::count_voxels()
+{
+    if (voxel_count == 0)
+    {
+        for (unsigned z = 0; z < size_z; z++)
+        {
+            for (unsigned y = 0; y < size_y; y++)
+            {
+                for (unsigned x = 0; x < size_x; x++)
+                {
+                    const auto voxel = get_voxel(x, y, z);
+                    if (voxel.has_value() && voxel->a > 0.0f)
+                    {
+                        voxel_count += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return voxel_count;
+}
+
 unsigned VoxelGrid::fill_perlin_noise(float frequency)
 {
     unsigned counter = 0;
-    unsigned total_voxels = size_x * size_y * size_z;
 
     // Define two Voxel colors for interpolation
     Voxel voxel1 = {0.8f, 0.0f, 0.0f, 1.0f}; // Red
@@ -112,6 +134,11 @@ unsigned VoxelGrid::fill_perlin_noise(float frequency)
     spdlog::info("Filled a total of {} voxels with Perlin noise.", counter);
 
     return counter;
+}
+
+glm::ivec3 VoxelGrid::get_size() const
+{
+    return glm::ivec3(size_x, size_y, size_z);
 }
 
 unsigned VoxelGrid::get_size_x() const

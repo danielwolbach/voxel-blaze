@@ -1,10 +1,10 @@
 #include <voxel-blaze/graphics/rasterizer.hpp>
 
-Rasterizer::Rasterizer(const VoxelGrid &voxel_grid)
-    : model(voxel_grid.meshify_greedy())
-    , shader(consts::vertex_shader_source, consts::fragment_shader_source)
+Rasterizer::Rasterizer(const VoxelGrid &voxel_grid, const Window &window)
+    : model(voxel_grid.meshify_greedy()), shader(consts::vertex_shader_source, consts::fragment_shader_source)
 {
-    auto projection_transform = glm::perspective(glm::radians(60.0f), 1280.0f / 720.0f, 0.1f, 10000.0f);
+    auto projection_transform =
+        glm::perspective(glm::radians(60.0f), (float)window.get_width() / (float)window.get_height(), 0.1f, 10000.0f);
     shader.upload_transform("projection_transform", glm::value_ptr(projection_transform));
 
     glEnable(GL_CULL_FACE);

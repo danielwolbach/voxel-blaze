@@ -12,6 +12,14 @@ void OrbitCamera::move(float radius, float theta, float phi)
     view_matrix = glm::lookAt(get_position(), center, glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
+void OrbitCamera::set(float radius, float theta, float phi)
+{
+    this->radius = radius;
+    this->theta = theta;
+    this->phi = phi;
+    view_matrix = glm::lookAt(get_position(), center, glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
 glm::vec3 OrbitCamera::get_position() const
 {
     float x = radius * glm::sin(theta) * glm::cos(phi);

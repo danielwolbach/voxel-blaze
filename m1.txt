@@ -1,0 +1,35 @@
+mode: rasterized, name: resources/teapot.vox, size: 126x61x80, average :                       7722,3154
+mode: rasterized, name: resources/monu.vox, size: 126x118x126, average :                       7364,646
+mode: rasterized, name: resources/scene_coffee.vox, size: 64x23x64, average :                  7301,2217
+mode: rasterized, name: resources/scene_park.vox, size: 126x32x126, average :                  7576,2446
+
+mode: rasterized, name: perlin noise, size: 16x16x16, average :                                 7294.0312
+mode: rasterized, name: perlin noise, size: 32x32x32, average :                                 7691.9473
+mode: rasterized, name: perlin noise, size: 64x64x64, average :                                 7803.383
+mode: rasterized, name: perlin noise, size: 128x128x128, average :                                  4935.648
+mode: rasterized, name: perlin noise, size: 256x256x256, average :                                  776.4393
+mode: rasterized, name: perlin noise, size: 512x512x512, average :                                  110.540504
+mode: rasterized, name: perlin noise, size: 16x16x16, average :                                 7621.0947
+mode: rasterized, name: perlin noise, size: 32x32x32, average :                                 7582.6406
+mode: rasterized, name: perlin noise, size: 64x64x64, average :                                 8394.996
+mode: rasterized, name: perlin noise, size: 128x128x128, average :                                  2770.607
+mode: rasterized, name: perlin noise, size: 256x256x256, average :                                  412.98044
+mode: rasterized, name: perlin noise, size: 512x512x512, average :                                  57.407104
+
+mode: ray-traced, name: resources/teapot.vox, size: 126x61x80, average :                            5619,0024
+mode: ray-traced, name: resources/monu.vox, size: 126x118x126, average :                            3015,8574
+mode: ray-traced, name: resources/scene_coffee.vox, size: 64x23x64, average :                       7463,55
+mode: ray-traced, name: resources/scene_park.vox, size: 126x32x126, average :                       5930,874
+
+mode: ray-traced, name: perlin noise, size: 16x16x16, average :                                 8030.5757
+mode: ray-traced, name: perlin noise, size: 32x32x32, average :                                 8060.2217
+mode: ray-traced, name: perlin noise, size: 64x64x64, average :                                 7108.0347
+mode: ray-traced, name: perlin noise, size: 128x128x128, average :                                  5956.3745
+mode: ray-traced, name: perlin noise, size: 256x256x256, average :                                  4991.5806
+mode: ray-traced, name: perlin noise, size: 512x512x512, average :                                  1063.5115
+mode: ray-traced, name: perlin noise, size: 16x16x16, average :                                 8089.426
+mode: ray-traced, name: perlin noise, size: 32x32x32, average :                                 8075.098
+mode: ray-traced, name: perlin noise, size: 64x64x64, average :                                 7812.381
+mode: ray-traced, name: perlin noise, size: 128x128x128, average :                                  6949.4814
+mode: ray-traced, name: perlin noise, size: 256x256x256, average :                                  6351.2676
+mode: ray-traced, name: perlin noise, size: 512x512x512, average :                                  1686.1235

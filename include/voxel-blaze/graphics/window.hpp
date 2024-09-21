@@ -9,6 +9,8 @@ class Window : Wrapper
     ~Window();
     bool opened() const;
     bool key_down(int key) const;
+    unsigned get_width() const;
+    unsigned get_height() const;
 
   private:
     void *handle;

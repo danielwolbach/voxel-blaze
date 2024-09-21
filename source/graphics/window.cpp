@@ -3,7 +3,7 @@
 void GLAPIENTRY debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                               const GLchar *message, const void *userParam)
 {
-    std::cerr << "OpenGL Debug Message: " << message << std::endl;
+    spdlog::debug("OpenGL Message: {}", message);
 }
 
 Window::Window(const unsigned width, const unsigned height)
@@ -57,4 +57,19 @@ bool Window::opened() const
 bool Window::key_down(int key) const
 {
     return glfwGetKey(static_cast<GLFWwindow *>(handle), key) == GLFW_PRESS;
+}
+
+unsigned Window::get_width() const
+{
+    int width;
+    int heigth;
+    glfwGetWindowSize(static_cast<GLFWwindow *>(handle), &width, &heigth);
+    return width;
+}
+unsigned Window::get_height() const
+{
+    int width;
+    int heigth;
+    glfwGetWindowSize(static_cast<GLFWwindow *>(handle), &width, &heigth);
+    return heigth;
 }

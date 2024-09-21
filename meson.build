@@ -20,6 +20,7 @@ source_files = [
   'source/parsers/vox_parser.cpp',
   'source/voxels/array_voxel_grid.cpp',
   'source/voxels/voxel_grid.cpp',
+  'source/test.cpp',
 ]
 
 include_directories = include_directories('include')

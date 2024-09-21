@@ -9,6 +9,7 @@ class OrbitCamera
     ~OrbitCamera() = default;
     const float *const matrix_ptr() const;
     void move(float radius, float theta, float phi);
+    void set(float radius, float theta, float phi);
     glm::vec3 get_position() const;
     glm::vec3 get_direction() const;
     glm::vec3 get_up() const;
